@@ -3,17 +3,12 @@
 body { font-family: -apple-system, sans-serif; background: #fff5f8; min-height: 100vh; padding-bottom: 100px; }
 
 /* Header */
-#app-header { background: var(--pink); color: #fff; display: flex; align-items: center; padding: 12px; }
-.header-title { flex: 1; font-size: 16px; font-weight: 700; }
+#app-header { background: var(--pink); color: #fff; display: flex; align-items: center; padding: 10px 12px; gap: 10px; }
+.header-store-select { flex: 1; border: none; background: rgba(255,255,255,0.9); border-radius: 10px; padding: 10px 12px; font-size: 15px; font-weight: 600; color: #333; }
 .header-btn { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--pink); border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
 
-/* Store Bar */
-#store-bar { background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
-.store-select { flex: 1; border: 2px solid #eee; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-weight: 600; background: #fff; }
-.store-count { font-size: 12px; color: #888; }
-
 /* Sync Status */
-.sync-status { padding: 4px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.9); margin-right: 10px; }
+.sync-status { padding: 4px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.9); }
 .sync-status.online { color: #2e7d32; }
 .sync-status.offline { color: #c62828; }
 .sync-status.syncing { color: #1565c0; }

@@ -28,24 +28,16 @@
             appEl.innerHTML = `
                 <!-- Header -->
                 <header id="app-header">
-                    <div class="header-title">🍨 BR 매장관리</div>
-                    <div id="sync-status" class="sync-status local">💾</div>
-                    <button class="header-btn" id="userMenuBtn">${currentUser?.name?.charAt(0) || '?'}</button>
-                </header>
-                
-                <!-- Store Selector (for owners with stores) -->
-                ${isOwner() && userStores.length > 0 ? `
-                <div id="store-bar">
-                    <select id="storeSelect" class="store-select">
+                    <select id="storeSelect" class="header-store-select">
                         ${userStores.map(s => `
                             <option value="${s.store_id}" ${s.store_id === STORE_ID ? 'selected' : ''}>
                                 🏪 ${s.stores?.name || '매장'}
                             </option>
                         `).join('')}
                     </select>
-                    <div class="store-count">${userStores.length}개 매장</div>
-                </div>
-                ` : ''}
+                    <div id="sync-status" class="sync-status local">💾</div>
+                    <button class="header-btn" id="userMenuBtn">${currentUser?.name?.charAt(0) || '?'}</button>
+                </header>
                 
                 <!-- Main Navigation -->
                 <nav id="main-nav">
@@ -82,11 +74,6 @@
             
             // User menu
             document.getElementById('userMenuBtn').onclick = showUserMenu;
-            
-            // Add class if store bar visible
-            if (userStores.length > 1) {
-                document.getElementById('app').classList.add('has-store-bar');
-            }
             
             // Load data and render
             if (online) await loadFromCloud();
