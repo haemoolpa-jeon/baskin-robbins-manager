@@ -595,8 +595,17 @@ function renderTimesheet() {
     const weekDates = getWeekDates();
     const selectedDay = store.selectedDay ?? new Date().getDay();
     
+    // Filter workers based on role
+    let visibleWorkers = store.workers;
+    if (typeof isParttime === 'function' && isParttime() && typeof currentUser !== 'undefined' && currentUser?.worker_id) {
+        visibleWorkers = store.workers.filter(w => w.id === currentUser.worker_id);
+    }
+    
+    const canEdit = typeof canAccess === 'function' ? canAccess('timesheet', 'edit') : true;
+    const isFullAccess = typeof isOwner === 'function' ? (isOwner() || isManager()) : true;
+    
     // Calculate weekly stats
-    const weeklyStats = store.workers.map(w => {
+    const weeklyStats = visibleWorkers.map(w => {
         let hours = 0;
         Object.values(w.shifts || {}).forEach(dayShifts => {
             dayShifts.forEach(s => hours += (s.end - s.start));
@@ -607,7 +616,7 @@ function renderTimesheet() {
     });
 
     document.getElementById('timesheet').innerHTML = `
-        <h1 class="page-title">👥 근무 관리</h1>
+        <h1 class="page-title">👥 ${isFullAccess ? '근무 관리' : '내 근무'}</h1>
         
         <!-- Day Selector -->
         <div class="day-selector">
@@ -626,7 +635,7 @@ function renderTimesheet() {
                 ${HOURS.map(h => `<div class="time-col">${h}</div>`).join('')}
             </div>
             <div class="time-body">
-                ${store.workers.map(w => {
+                ${visibleWorkers.map(w => {
                     const dayShifts = w.shifts?.[selectedDay] || [];
                     return `
                     <div class="time-row" data-worker="${w.id}">
@@ -634,7 +643,7 @@ function renderTimesheet() {
                             <span class="wl-emoji">${w.emoji}</span>
                             <span class="wl-name">${w.name}</span>
                         </div>
-                        <div class="time-slots">
+                        <div class="time-slots ${!isFullAccess ? 'readonly' : ''}">
                             ${HOURS.map(h => {
                                 const inShift = dayShifts.some(s => h >= s.start && h < s.end);
                                 return `<div class="time-slot ${inShift ? 'active' : ''}" data-hour="${h}" data-worker="${w.id}"></div>`;
@@ -647,17 +656,14 @@ function renderTimesheet() {
         
         <!-- Worker Summary -->
         <div class="worker-summary">
-            <div class="summary-title">📋 주간 급여 요약</div>
+            <div class="summary-title">📋 ${isFullAccess ? '주간 급여 요약' : '내 급여'}</div>
             ${weeklyStats.map(w => `
-                <div class="summary-row" data-id="${w.id}">
+                <div class="summary-row ${isFullAccess ? '' : 'no-click'}" data-id="${isFullAccess ? w.id : ''}">
                     <span class="sr-worker">${w.emoji} ${w.name}</span>
                     <span class="sr-hours">${w.hours}h</span>
                     <span class="sr-pay">${w.total.toLocaleString()}원 ${w.bonus ? '<span class="badge bonus">+주휴</span>' : ''}</span>
                 </div>
             `).join('')}
-            <div class="summary-row add-worker-row" id="addWorkerBtn">
-                <span class="sr-add">+ 직원 추가</span>
-            </div>
         </div>
     `;
     
@@ -666,20 +672,20 @@ function renderTimesheet() {
         b.onclick = () => { store.selectedDay = +b.dataset.day; renderTimesheet(); };
     });
     
-    // Time slot interactions
-    initTimeSlotDrag(selectedDay);
-    
-    // Worker label click -> edit modal
-    document.querySelectorAll('.worker-label').forEach(el => {
-        el.onclick = () => showWorkerModal(+el.dataset.id);
-    });
-    
-    // Summary row click -> edit modal
-    document.querySelectorAll('.summary-row[data-id]').forEach(el => {
-        el.onclick = () => showWorkerModal(+el.dataset.id);
-    });
-    
-    document.getElementById('addWorkerBtn').onclick = showAddWorkerModal;
+    // Time slot interactions (only if full access)
+    if (isFullAccess) {
+        initTimeSlotDrag(selectedDay);
+        
+        // Worker label click -> edit modal
+        document.querySelectorAll('.worker-label').forEach(el => {
+            el.onclick = () => showWorkerModal(+el.dataset.id);
+        });
+        
+        // Summary row click -> edit modal
+        document.querySelectorAll('.summary-row[data-id]').forEach(el => {
+            if (el.dataset.id) el.onclick = () => showWorkerModal(+el.dataset.id);
+        });
+    }
 }
 
 let isDragging = false, dragMode = null, dragWorker = null;
@@ -956,9 +962,5 @@ function renderSales() {
     `;
 }
 
-// Init
-renderInventory();
-renderTimesheet();
-renderSales();
-
+// Init - only register service worker, rendering handled by index.html
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
