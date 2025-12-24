@@ -3,12 +3,12 @@
 body { font-family: -apple-system, sans-serif; background: #fff5f8; min-height: 100vh; padding-bottom: 100px; }
 
 /* Header */
-#app-header { position: fixed; top: 0; left: 0; right: 0; height: 50px; background: var(--pink); color: #fff; display: flex; align-items: center; padding: 0 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 100; }
+#app-header { background: var(--pink); color: #fff; display: flex; align-items: center; padding: 12px; }
 .header-title { flex: 1; font-size: 16px; font-weight: 700; }
 .header-btn { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--pink); border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
 
 /* Store Bar */
-#store-bar { position: fixed; top: 50px; left: 0; right: 0; background: #fff; padding: 8px 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); z-index: 99; }
+#store-bar { background: #fff; padding: 8px 12px; border-bottom: 1px solid #eee; }
 .store-select { width: 100%; border: 2px solid #eee; border-radius: 10px; padding: 10px 12px; font-size: 15px; font-weight: 600; background: #fff; }
 
 /* Sync Status */
@@ -18,9 +18,8 @@ body { font-family: -apple-system, sans-serif; background: #fff5f8; min-height: 
 .sync-status.syncing { color: #1565c0; }
 .sync-status.local { color: #666; }
 
-/* Adjust page padding for header */
-.page { padding: 12px; padding-top: 62px; }
-.has-store-bar .page { padding-top: 110px; }
+/* Page */
+.page { padding: 12px; }
 
 /* Login Screen */
 .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff5f8, #ffe0eb); }
