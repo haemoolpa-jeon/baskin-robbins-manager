@@ -1,0 +1,110 @@
+-- ⚠️ WARNING: This will DELETE all existing tables and data!
+-- Run this in Supabase SQL Editor (supabase.com → your project → SQL Editor)
+
+-- Step 1: Drop all existing tables (ignore errors if tables don't exist)
+DROP TABLE IF EXISTS shifts CASCADE;
+DROP TABLE IF EXISTS sales CASCADE;
+DROP TABLE IF EXISTS storage CASCADE;
+DROP TABLE IF EXISTS cabinets CASCADE;
+DROP TABLE IF EXISTS workers CASCADE;
+DROP TABLE IF EXISTS flavors CASCADE;
+DROP TABLE IF EXISTS stores CASCADE;
+
+-- Drop any other tables you might have from previous testing
+-- Add more DROP statements here if needed:
+-- DROP TABLE IF EXISTS your_old_table CASCADE;
+
+-- Step 2: Create new tables for BR Manager
+
+-- Store info
+CREATE TABLE stores (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    pin TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Flavors
+CREATE TABLE flavors (
+    id BIGINT PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    color TEXT DEFAULT '#ff69b4',
+    type TEXT DEFAULT 'fixed',
+    available BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Cabinet positions
+CREATE TABLE cabinets (
+    id SERIAL PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    cabinet_name TEXT NOT NULL,
+    row_name TEXT NOT NULL,
+    position INT NOT NULL,
+    flavor_id BIGINT,
+    level INT DEFAULT 100,
+    UNIQUE(store_id, cabinet_name, row_name, position)
+);
+
+-- Storage inventory
+CREATE TABLE storage (
+    id SERIAL PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    flavor_id BIGINT NOT NULL,
+    quantity INT DEFAULT 0,
+    UNIQUE(store_id, flavor_id)
+);
+
+-- Workers
+CREATE TABLE workers (
+    id BIGINT PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    emoji TEXT DEFAULT '👨',
+    wage INT DEFAULT 10030,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Worker shifts
+CREATE TABLE shifts (
+    id SERIAL PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    worker_id BIGINT REFERENCES workers(id) ON DELETE CASCADE,
+    day_of_week INT NOT NULL,
+    start_hour INT NOT NULL,
+    end_hour INT NOT NULL
+);
+
+-- Sales records
+CREATE TABLE sales (
+    id SERIAL PRIMARY KEY,
+    store_id UUID REFERENCES stores(id) ON DELETE CASCADE,
+    flavor_id BIGINT,
+    quantity INT DEFAULT 1,
+    sold_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Step 3: Enable Row Level Security
+ALTER TABLE stores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE flavors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cabinets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE storage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE sales ENABLE ROW LEVEL SECURITY;
+
+-- Step 4: Create policies (allow all access for now)
+CREATE POLICY "Allow all" ON stores FOR ALL USING (true);
+CREATE POLICY "Allow all" ON flavors FOR ALL USING (true);
+CREATE POLICY "Allow all" ON cabinets FOR ALL USING (true);
+CREATE POLICY "Allow all" ON storage FOR ALL USING (true);
+CREATE POLICY "Allow all" ON workers FOR ALL USING (true);
+CREATE POLICY "Allow all" ON shifts FOR ALL USING (true);
+CREATE POLICY "Allow all" ON sales FOR ALL USING (true);
+
+-- Step 5: Create default store
+INSERT INTO stores (id, name, pin) VALUES 
+    ('00000000-0000-0000-0000-000000000001', 'BR매장', '1234');
+
+-- ✅ Done! Now go to Settings → API and copy your URL and anon key
