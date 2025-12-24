@@ -185,23 +185,6 @@ async function showChangePasswordModal() {
     };
 }
 
-// Store selector for owners
-function renderStoreSelector() {
-    if (!isOwner() || userStores.length <= 1) return '';
-    
-    return `
-        <div class="store-selector">
-            <select id="storeSelect" class="store-select">
-                ${userStores.map(s => `
-                    <option value="${s.store_id}" ${s.store_id === STORE_ID ? 'selected' : ''}>
-                        ${s.stores?.name || '매장'}
-                    </option>
-                `).join('')}
-            </select>
-        </div>
-    `;
-}
-
 // User management (owner only)
 async function showUserManagement() {
     if (!isOwner()) return;

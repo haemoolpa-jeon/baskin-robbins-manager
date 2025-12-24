@@ -114,6 +114,21 @@
         (async () => {
             await initSupabase();
             if (currentUser) {
+                // Load user's stores on refresh
+                const { data: storeLinks } = await supabaseClient
+                    .from('store_users')
+                    .select('store_id, role, stores(id, name)')
+                    .eq('user_id', currentUser.id);
+                userStores = storeLinks || [];
+                
+                // Restore last selected store or use first
+                const savedStoreId = localStorage.getItem('br_store_id');
+                if (savedStoreId && userStores.some(s => s.store_id === savedStoreId)) {
+                    STORE_ID = savedStoreId;
+                } else if (userStores.length > 0) {
+                    STORE_ID = userStores[0].store_id;
+                }
+                
                 initApp();
             } else {
                 showLoginScreen();
