@@ -663,7 +663,9 @@ function renderTimesheet() {
         <div class="timetable">
             <div class="time-header">
                 <div class="time-label"></div>
-                ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}</div>`).join('')}
+                <div class="time-cols">
+                    ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}시</div>`).join('')}
+                </div>
             </div>
             <div class="time-body">
                 ${visibleWorkers.map(w => {
@@ -678,8 +680,7 @@ function renderTimesheet() {
                         <div class="time-slots ${!isFullAccess ? 'readonly' : ''}">
                             ${SLOTS.map(slot => {
                                 const inShift = dayShifts.some(s => slot >= s.start && slot < s.end);
-                                const isHalf = slot % 1 === 0.5;
-                                return `<div class="time-slot ${inShift ? 'active' : ''} ${isHalf ? 'half' : ''}" data-slot="${slot}" data-worker="${w.id}"></div>`;
+                                return `<div class="time-slot ${inShift ? 'active' : ''}" data-slot="${slot}" data-worker="${w.id}"></div>`;
                             }).join('')}
                         </div>
                     </div>
