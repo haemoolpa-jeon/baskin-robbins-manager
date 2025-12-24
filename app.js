@@ -571,29 +571,53 @@ function showAddFlavorModal() {
 }
 
 // ===== TIMESHEET =====
-const HOURS = [9,10,11,12,13,14,15,16,17,18,19,20,21,22]; // 9AM-10PM (11PM end)
+const SLOTS = []; // 30-min slots: 9, 9.5, 10, 10.5, ... 22
+for(let h = 9; h <= 22; h++) { SLOTS.push(h); SLOTS.push(h + 0.5); }
+SLOTS.pop(); // Remove 22.5, end at 22
 const DAYS = ['일','월','화','수','목','금','토'];
+
+// Week offset (0 = current week, -1 = last week, 1 = next week)
+store.weekOffset = store.weekOffset || 0;
 
 // Migrate old schedule format to new if needed
 store.workers.forEach(w => {
-    if(!w.shifts) w.shifts = {}; // {dayIndex: [{start:9, end:14}, ...]}
+    if(!w.shifts) w.shifts = {}; // {weekKey: {dayIndex: [{start:9, end:14.5}, ...]}}
 });
 
-function getWeekDates() {
+function getWeekKey(offset = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + (offset * 7) - d.getDay());
+    return `${d.getFullYear()}-W${String(Math.ceil((d.getDate() + 6) / 7)).padStart(2, '0')}`;
+}
+
+function getWeekDates(offset = 0) {
     const today = new Date();
     const day = today.getDay();
     const dates = [];
     for(let i = 0; i < 7; i++) {
         const d = new Date(today);
-        d.setDate(today.getDate() - day + i);
+        d.setDate(today.getDate() - day + i + (offset * 7));
         dates.push(d);
     }
     return dates;
 }
 
+function formatSlot(slot) {
+    const h = Math.floor(slot);
+    const m = slot % 1 === 0.5 ? '30' : '00';
+    return `${h}:${m}`;
+}
+
 function renderTimesheet() {
-    const weekDates = getWeekDates();
+    const weekDates = getWeekDates(store.weekOffset);
+    const weekKey = getWeekKey(store.weekOffset);
     const selectedDay = store.selectedDay ?? new Date().getDay();
+    
+    // Week label
+    const weekStart = weekDates[0];
+    const weekEnd = weekDates[6];
+    const weekLabel = `${weekStart.getMonth()+1}/${weekStart.getDate()} - ${weekEnd.getMonth()+1}/${weekEnd.getDate()}`;
+    const isCurrentWeek = store.weekOffset === 0;
     
     // Filter workers based on role
     let visibleWorkers = store.workers;
@@ -601,22 +625,29 @@ function renderTimesheet() {
         visibleWorkers = store.workers.filter(w => w.id === currentUser.worker_id);
     }
     
-    const canEdit = typeof canAccess === 'function' ? canAccess('timesheet', 'edit') : true;
     const isFullAccess = typeof isOwner === 'function' ? (isOwner() || isManager()) : true;
     
-    // Calculate weekly stats
+    // Calculate weekly stats for this week
     const weeklyStats = visibleWorkers.map(w => {
         let hours = 0;
-        Object.values(w.shifts || {}).forEach(dayShifts => {
+        const weekShifts = w.shifts?.[weekKey] || {};
+        Object.values(weekShifts).forEach(dayShifts => {
             dayShifts.forEach(s => hours += (s.end - s.start));
         });
-        const basePay = hours * w.wage;
+        const basePay = Math.round(hours * w.wage);
         const bonus = hours >= 15 ? Math.floor((hours/40)*8*w.wage) : 0;
         return { ...w, hours, basePay, bonus, total: basePay + bonus };
     });
 
     document.getElementById('timesheet').innerHTML = `
         <h1 class="page-title">👥 ${isFullAccess ? '근무 관리' : '내 근무'}</h1>
+        
+        <!-- Week Navigation -->
+        <div class="week-nav">
+            <button class="week-btn" id="prevWeek">◀</button>
+            <div class="week-label ${isCurrentWeek ? 'current' : ''}">${weekLabel}${isCurrentWeek ? ' (이번주)' : ''}</div>
+            <button class="week-btn" id="nextWeek">▶</button>
+        </div>
         
         <!-- Day Selector -->
         <div class="day-selector">
@@ -632,11 +663,12 @@ function renderTimesheet() {
         <div class="timetable">
             <div class="time-header">
                 <div class="time-label"></div>
-                ${HOURS.map(h => `<div class="time-col">${h}</div>`).join('')}
+                ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}</div>`).join('')}
             </div>
             <div class="time-body">
                 ${visibleWorkers.map(w => {
-                    const dayShifts = w.shifts?.[selectedDay] || [];
+                    const weekShifts = w.shifts?.[weekKey] || {};
+                    const dayShifts = weekShifts[selectedDay] || [];
                     return `
                     <div class="time-row" data-worker="${w.id}">
                         <div class="worker-label" data-id="${w.id}">
@@ -644,9 +676,10 @@ function renderTimesheet() {
                             <span class="wl-name">${w.name}</span>
                         </div>
                         <div class="time-slots ${!isFullAccess ? 'readonly' : ''}">
-                            ${HOURS.map(h => {
-                                const inShift = dayShifts.some(s => h >= s.start && h < s.end);
-                                return `<div class="time-slot ${inShift ? 'active' : ''}" data-hour="${h}" data-worker="${w.id}"></div>`;
+                            ${SLOTS.map(slot => {
+                                const inShift = dayShifts.some(s => slot >= s.start && slot < s.end);
+                                const isHalf = slot % 1 === 0.5;
+                                return `<div class="time-slot ${inShift ? 'active' : ''} ${isHalf ? 'half' : ''}" data-slot="${slot}" data-worker="${w.id}"></div>`;
                             }).join('')}
                         </div>
                     </div>
@@ -667,6 +700,10 @@ function renderTimesheet() {
         </div>
     `;
     
+    // Week navigation
+    document.getElementById('prevWeek').onclick = () => { store.weekOffset--; renderTimesheet(); };
+    document.getElementById('nextWeek').onclick = () => { store.weekOffset++; renderTimesheet(); };
+    
     // Day selector
     document.querySelectorAll('.day-btn').forEach(b => {
         b.onclick = () => { store.selectedDay = +b.dataset.day; renderTimesheet(); };
@@ -674,7 +711,7 @@ function renderTimesheet() {
     
     // Time slot interactions (only if full access)
     if (isFullAccess) {
-        initTimeSlotDrag(selectedDay);
+        initTimeSlotDrag(selectedDay, weekKey);
         
         // Worker label click -> edit modal
         document.querySelectorAll('.worker-label').forEach(el => {
@@ -688,9 +725,10 @@ function renderTimesheet() {
     }
 }
 
-let isDragging = false, dragMode = null, dragWorker = null;
+let isDragging = false, dragMode = null, dragWorker = null, currentWeekKey = null;
 
-function initTimeSlotDrag(selectedDay) {
+function initTimeSlotDrag(selectedDay, weekKey) {
+    currentWeekKey = weekKey;
     const slots = document.querySelectorAll('.time-slot');
     
     const handleStart = (e) => {
@@ -699,7 +737,7 @@ function initTimeSlotDrag(selectedDay) {
         isDragging = true;
         dragWorker = +slot.dataset.worker;
         dragMode = slot.classList.contains('active') ? 'remove' : 'add';
-        toggleSlot(slot, selectedDay);
+        toggleSlot(slot, selectedDay, weekKey);
     };
     
     const handleMove = (e) => {
@@ -709,7 +747,7 @@ function initTimeSlotDrag(selectedDay) {
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
         const slot = el?.closest('.time-slot');
         if(slot && +slot.dataset.worker === dragWorker) {
-            toggleSlot(slot, selectedDay);
+            toggleSlot(slot, selectedDay, weekKey);
         }
     };
     
@@ -728,48 +766,50 @@ function initTimeSlotDrag(selectedDay) {
     document.addEventListener('touchend', handleEnd);
 }
 
-function toggleSlot(slot, day) {
-    const hour = +slot.dataset.hour;
+function toggleSlot(slot, day, weekKey) {
+    const slotTime = parseFloat(slot.dataset.slot);
     const workerId = +slot.dataset.worker;
     const worker = store.workers.find(w => w.id === workerId);
     if(!worker) return;
     
     if(!worker.shifts) worker.shifts = {};
-    if(!worker.shifts[day]) worker.shifts[day] = [];
+    if(!worker.shifts[weekKey]) worker.shifts[weekKey] = {};
+    if(!worker.shifts[weekKey][day]) worker.shifts[weekKey][day] = [];
     
+    const dayShifts = worker.shifts[weekKey][day];
     const isActive = slot.classList.contains('active');
     
     if(dragMode === 'add' && !isActive) {
         slot.classList.add('active');
-        addHourToShifts(worker.shifts[day], hour);
+        addSlotToShifts(dayShifts, slotTime);
     } else if(dragMode === 'remove' && isActive) {
         slot.classList.remove('active');
-        removeHourFromShifts(worker.shifts[day], hour);
+        removeSlotFromShifts(dayShifts, slotTime);
     }
 }
 
-function addHourToShifts(shifts, hour) {
-    // Find adjacent shift or create new
+function addSlotToShifts(shifts, slot) {
+    const slotEnd = slot + 0.5;
     let merged = false;
     for(let s of shifts) {
-        if(hour === s.end) { s.end = hour + 1; merged = true; break; }
-        if(hour === s.start - 1) { s.start = hour; merged = true; break; }
-        if(hour >= s.start && hour < s.end) { merged = true; break; }
+        if(slot === s.end) { s.end = slotEnd; merged = true; break; }
+        if(slotEnd === s.start) { s.start = slot; merged = true; break; }
+        if(slot >= s.start && slot < s.end) { merged = true; break; }
     }
-    if(!merged) shifts.push({start: hour, end: hour + 1});
+    if(!merged) shifts.push({start: slot, end: slotEnd});
     mergeShifts(shifts);
 }
 
-function removeHourFromShifts(shifts, hour) {
+function removeSlotFromShifts(shifts, slot) {
+    const slotEnd = slot + 0.5;
     for(let i = shifts.length - 1; i >= 0; i--) {
         const s = shifts[i];
-        if(hour >= s.start && hour < s.end) {
-            if(hour === s.start) s.start++;
-            else if(hour === s.end - 1) s.end--;
+        if(slot >= s.start && slot < s.end) {
+            if(slot === s.start) s.start = slotEnd;
+            else if(slotEnd === s.end) s.end = slot;
             else {
-                // Split shift
-                shifts.push({start: hour + 1, end: s.end});
-                s.end = hour;
+                shifts.push({start: slotEnd, end: s.end});
+                s.end = slot;
             }
             if(s.start >= s.end) shifts.splice(i, 1);
             break;
