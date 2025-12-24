@@ -621,11 +621,13 @@ function renderTimesheet() {
     
     // Filter workers based on role
     let visibleWorkers = store.workers;
-    if (typeof isParttime === 'function' && isParttime() && typeof currentUser !== 'undefined' && currentUser?.worker_id) {
+    const isViewOnly = typeof isParttime === 'function' && isParttime();
+    if (isViewOnly && typeof currentUser !== 'undefined' && currentUser?.worker_id) {
         visibleWorkers = store.workers.filter(w => w.id === currentUser.worker_id);
     }
     
     const isFullAccess = typeof isOwner === 'function' ? (isOwner() || isManager()) : true;
+    const canEdit = isFullAccess && !isViewOnly;
     
     // Calculate weekly stats for this week
     const weeklyStats = visibleWorkers.map(w => {
@@ -636,11 +638,18 @@ function renderTimesheet() {
         });
         const basePay = Math.round(hours * w.wage);
         const bonus = hours >= 15 ? Math.floor((hours/40)*8*w.wage) : 0;
-        return { ...w, hours, basePay, bonus, total: basePay + bonus };
+        return { ...w, hours, basePay, bonus, total: basePay + bonus, weekShifts };
     });
 
+    // Format shift time
+    const formatTime = (t) => `${Math.floor(t)}:${t % 1 === 0.5 ? '30' : '00'}`;
+    const getShiftText = (shifts) => {
+        if (!shifts || shifts.length === 0) return '휴무';
+        return shifts.map(s => `${formatTime(s.start)}-${formatTime(s.end)}`).join(', ');
+    };
+
     document.getElementById('timesheet').innerHTML = `
-        <h1 class="page-title">👥 ${isFullAccess ? '근무 관리' : '내 근무'}</h1>
+        <h1 class="page-title">👥 ${canEdit ? '근무 관리' : '내 근무'}</h1>
         
         <!-- Week Navigation -->
         <div class="week-nav">
@@ -649,47 +658,66 @@ function renderTimesheet() {
             <button class="week-btn" id="nextWeek">▶</button>
         </div>
         
-        <!-- Day Selector -->
-        <div class="day-selector">
-            ${DAYS.map((d,i) => `
-                <button class="day-btn ${i === selectedDay ? 'active' : ''}" data-day="${i}">
-                    <span class="day-name">${d}</span>
-                    <span class="day-date">${weekDates[i].getDate()}</span>
-                </button>
-            `).join('')}
-        </div>
-        
-        <!-- Timetable -->
-        <div class="timetable">
-            <div class="time-header">
-                ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}</div>`).join('')}
-            </div>
-            <div class="time-body">
-                ${visibleWorkers.map(w => {
-                    const weekShifts = w.shifts?.[weekKey] || {};
-                    const dayShifts = weekShifts[selectedDay] || [];
-                    return `
-                    <div class="time-row" data-worker="${w.id}">
-                        <div class="worker-label" data-id="${w.id}">
-                            <span class="wl-emoji">${w.emoji}</span>
-                            <span class="wl-name">${w.name}</span>
-                        </div>
-                        <div class="time-slots ${!isFullAccess ? 'readonly' : ''}">
-                            ${SLOTS.map(slot => {
-                                const inShift = dayShifts.some(s => slot >= s.start && slot < s.end);
-                                return `<div class="time-slot ${inShift ? 'active' : ''}" data-slot="${slot}" data-worker="${w.id}"></div>`;
-                            }).join('')}
-                        </div>
+        <!-- Mobile: Card View / Desktop: Grid View -->
+        <div class="schedule-cards">
+            ${visibleWorkers.map(w => {
+                const ws = w.shifts?.[weekKey] || {};
+                return `
+                <div class="schedule-card">
+                    <div class="sc-header">
+                        <span class="sc-name">${w.emoji} ${w.name}</span>
+                        <span class="sc-hours">${weeklyStats.find(x=>x.id===w.id)?.hours || 0}h</span>
                     </div>
-                `}).join('')}
+                    <div class="sc-days">
+                        ${DAYS.map((d,i) => {
+                            const dayShifts = ws[i] || [];
+                            const hasShift = dayShifts.length > 0;
+                            return `<div class="sc-day ${hasShift ? 'has-shift' : ''} ${i === selectedDay ? 'selected' : ''}" data-worker="${w.id}" data-day="${i}">
+                                <span class="sc-day-name">${d}</span>
+                                <span class="sc-day-time">${getShiftText(dayShifts)}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `}).join('')}
+        </div>
+
+        <!-- Day Detail (for editing) -->
+        ${canEdit ? `
+        <div class="day-detail">
+            <div class="dd-title">${DAYS[selectedDay]}요일 상세</div>
+            <div class="timetable">
+                <div class="time-header">
+                    ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}</div>`).join('')}
+                </div>
+                <div class="time-body">
+                    ${visibleWorkers.map(w => {
+                        const weekShifts = w.shifts?.[weekKey] || {};
+                        const dayShifts = weekShifts[selectedDay] || [];
+                        return `
+                        <div class="time-row" data-worker="${w.id}">
+                            <div class="worker-label" data-id="${w.id}">
+                                <span class="wl-emoji">${w.emoji}</span>
+                                <span class="wl-name">${w.name}</span>
+                            </div>
+                            <div class="time-slots">
+                                ${SLOTS.map(slot => {
+                                    const inShift = dayShifts.some(s => slot >= s.start && slot < s.end);
+                                    return `<div class="time-slot ${inShift ? 'active' : ''}" data-slot="${slot}" data-worker="${w.id}"></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
             </div>
         </div>
+        ` : ''}
         
         <!-- Worker Summary -->
         <div class="worker-summary">
-            <div class="summary-title">📋 ${isFullAccess ? '주간 급여 요약' : '내 급여'}</div>
+            <div class="summary-title">📋 주간 급여</div>
             ${weeklyStats.map(w => `
-                <div class="summary-row ${isFullAccess ? '' : 'no-click'}" data-id="${isFullAccess ? w.id : ''}">
+                <div class="summary-row ${canEdit ? '' : 'no-click'}" data-id="${canEdit ? w.id : ''}">
                     <span class="sr-worker">${w.emoji} ${w.name}</span>
                     <span class="sr-hours">${w.hours}h</span>
                     <span class="sr-pay">${w.total.toLocaleString()}원 ${w.bonus ? '<span class="badge bonus">+주휴</span>' : ''}</span>
@@ -702,13 +730,13 @@ function renderTimesheet() {
     document.getElementById('prevWeek').onclick = () => { store.weekOffset--; renderTimesheet(); };
     document.getElementById('nextWeek').onclick = () => { store.weekOffset++; renderTimesheet(); };
     
-    // Day selector
-    document.querySelectorAll('.day-btn').forEach(b => {
-        b.onclick = () => { store.selectedDay = +b.dataset.day; renderTimesheet(); };
+    // Card day click -> select day
+    document.querySelectorAll('.sc-day').forEach(el => {
+        el.onclick = () => { store.selectedDay = +el.dataset.day; renderTimesheet(); };
     });
     
-    // Time slot interactions (only if full access)
-    if (isFullAccess) {
+    // Time slot interactions (only if can edit)
+    if (canEdit) {
         initTimeSlotDrag(selectedDay, weekKey);
         
         // Worker label click -> edit modal
