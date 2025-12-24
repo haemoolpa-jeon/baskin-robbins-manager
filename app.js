@@ -662,10 +662,7 @@ function renderTimesheet() {
         <!-- Timetable -->
         <div class="timetable">
             <div class="time-header">
-                <div class="time-label"></div>
-                <div class="time-cols">
-                    ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}시</div>`).join('')}
-                </div>
+                ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22].map(h => `<div class="time-col">${h}</div>`).join('')}
             </div>
             <div class="time-body">
                 ${visibleWorkers.map(w => {
