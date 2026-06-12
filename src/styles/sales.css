@@ -1,0 +1,61 @@
+/* Order/stock tab: summary cards, par setting, reorder checklist, 소진 ranking. */
+
+.stat-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); margin-bottom: var(--sp-3); }
+@media (min-width: 700px) {
+  .stat-cards { grid-template-columns: repeat(4, 1fr); }
+}
+.stat-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: var(--sp-4) var(--sp-3);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stat-icon { color: var(--pink); }
+.stat-value { font-size: var(--fs-2xl); font-weight: 800; color: var(--text); }
+.stat-label { font-size: var(--fs-sm); color: var(--text-2); }
+
+.section-card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3); }
+.section-title { font-size: var(--fs-lg); font-weight: 800; margin-bottom: var(--sp-3); }
+
+/* Par setting */
+.par-row { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); }
+.par-row .label { font-size: var(--fs-lg); font-weight: 700; }
+.par-stepper { display: flex; align-items: center; gap: var(--sp-3); }
+.par-stepper button { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--blue); background: #fff; color: var(--blue); font-size: 28px; font-weight: 800; }
+.par-stepper button:disabled { opacity: 0.4; }
+.par-value { font-size: var(--fs-3xl); font-weight: 800; min-width: 52px; text-align: center; }
+.par-hint { text-align: center; font-size: var(--fs-sm); color: var(--text-2); margin-top: var(--sp-3); }
+
+/* Reorder checklist */
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-2);
+  border: 2px solid transparent;
+}
+.order-item.urgent { background: var(--danger-soft); border-color: var(--danger); }
+.order-item.checked { opacity: 0.5; }
+.order-check { width: 46px; height: 46px; flex: 0 0 auto; border-radius: 12px; border: 2px solid var(--blue); background: #fff; font-size: 22px; font-weight: 800; color: var(--blue); display: inline-flex; align-items: center; justify-content: center; }
+.order-check.on { background: var(--blue); color: #fff; }
+.order-info { flex: 1; min-width: 0; }
+.order-name { font-weight: 700; font-size: var(--fs-md); }
+.order-reason { font-size: var(--fs-sm); color: var(--text-2); }
+.order-qty { font-size: var(--fs-xl); font-weight: 800; color: var(--blue); white-space: nowrap; }
+.order-qty.urgent { color: var(--danger); }
+
+/* 소진 ranking */
+.rank-item { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--border); }
+.rank-item:last-child { border-bottom: none; }
+.rank-num { font-weight: 800; color: var(--pink); width: 24px; font-size: var(--fs-lg); }
+.rank-name { flex: 1; font-weight: 700; }
+.rank-qty { font-weight: 700; color: var(--text-2); }
+.ok-note { text-align: center; color: var(--ok); padding: var(--sp-4); font-weight: 700; font-size: var(--fs-md); }

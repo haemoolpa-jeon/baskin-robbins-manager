@@ -1,0 +1,78 @@
+.pinlock {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  background: linear-gradient(160deg, #fff, var(--pink-soft));
+  padding: var(--sp-5);
+  overflow-y: auto;
+}
+.pinlock-logo {
+  font-size: 56px;
+}
+.pinlock-title {
+  font-size: var(--fs-xl);
+  font-weight: 800;
+}
+.pin-dots {
+  display: flex;
+  gap: var(--sp-4);
+  margin-top: var(--sp-2);
+}
+.pin-dots.error {
+  animation: shake 0.35s;
+}
+@keyframes shake {
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.pin-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--pink);
+}
+.pin-dot.filled {
+  background: var(--pink);
+}
+.pin-error {
+  min-height: 22px;
+  color: var(--danger);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+}
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 84px);
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+.key {
+  height: 84px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--text);
+}
+.key:active {
+  background: var(--surface-2);
+  transform: scale(0.95);
+}
+.key-icon {
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-2);
+}
+
+/* Short / landscape screens (e.g. phone landscape): shrink so the keypad fits. */
+@media (max-height: 620px) {
+  .pinlock { justify-content: flex-start; padding-top: var(--sp-4); gap: var(--sp-2); }
+  .pinlock-logo { font-size: 40px; }
+  .keypad { grid-template-columns: repeat(3, 68px); gap: var(--sp-2); }
+  .key { height: 64px; font-size: var(--fs-xl); }
+}

@@ -1,0 +1,79 @@
+/* Design tokens — modern, flat, high-contrast, large.
+   Tuned for a 50–70-year-old owner on a 9–11" touch tablet. */
+:root {
+  /* Brand (Baskin Robbins pink + blue), used as accents on a neutral base */
+  --pink: #e6117f;
+  --pink-strong: #c40e6b;
+  --pink-soft: #fde6f1;
+  --blue: #1d6fe0;
+  --blue-soft: #e7f0fe;
+
+  /* Neutral surfaces & text */
+  --bg: #f4f4f6;
+  --surface: #ffffff;
+  --surface-2: #f1f1f4;
+  --border: #e7e7ec;
+  --text: #1b1b1f;
+  --text-2: #62626b;
+  --text-3: #9b9ba3;
+
+  /* Status */
+  --ok: #15a34a;
+  --ok-soft: #e7f6ec;
+  --warn: #c2740a;
+  --warn-soft: #fdf0dd;
+  --danger: #d92d2d;
+  --danger-soft: #fde8e8;
+
+  /* Typography — generous for older eyes */
+  --font: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --fs-xs: 13px;
+  --fs-sm: 15px;
+  --fs-md: 17px; /* body */
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 30px;
+  --fs-3xl: 38px;
+
+  /* Spacing */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+
+  /* Radius — softer, larger */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 26px;
+
+  /* Sizing */
+  --touch: 52px; /* generous minimum touch target */
+  --shadow-sm: 0 1px 3px rgba(20, 20, 40, 0.06), 0 1px 2px rgba(20, 20, 40, 0.04);
+  --shadow-md: 0 6px 20px rgba(20, 20, 40, 0.08);
+  --shadow-lg: 0 16px 48px rgba(230, 17, 127, 0.16);
+
+  --header-h: 64px;
+  --nav-h: 84px;
+}
+
+/* On tablet-width screens (the primary device) scale type + targets up a notch
+   for older eyes. Phones keep the base scale so dense screens don't overflow. */
+@media (min-width: 768px) {
+  :root {
+    --fs-xs: 14px;
+    --fs-sm: 16px;
+    --fs-md: 19px;
+    --fs-lg: 22px;
+    --fs-xl: 27px;
+    --fs-2xl: 33px;
+    --fs-3xl: 44px;
+    --touch: 56px;
+    --header-h: 68px;
+    --nav-h: 90px;
+  }
+}
