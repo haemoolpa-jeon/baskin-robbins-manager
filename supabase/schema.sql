@@ -8,6 +8,7 @@ drop table if exists sales cascade;
 drop table if exists payroll_extras cascade;
 drop table if exists shifts cascade;
 drop table if exists storage cascade;
+drop table if exists inventory_products cascade;
 drop table if exists cabinets cascade;
 drop table if exists workers cascade;
 drop table if exists flavors cascade;
@@ -29,6 +30,9 @@ create table flavors (
   color text default '#ff69b4',
   type text default 'fixed' check (type in ('fixed', 'seasonal', 'limited', 'special')),
   available boolean default true,
+  lot_number text,
+  expiry_date date,
+  storage_location text not null default '',
   created_at timestamptz default now()
 );
 
@@ -49,6 +53,25 @@ create table storage (
   flavor_id bigint not null,
   quantity int default 0,
   unique (store_id, flavor_id)
+);
+
+-- Cakes and packaged desserts are whole-unit inventory. They intentionally do
+-- not share the flavor/storage model because each item has its own target and unit.
+create table inventory_products (
+  id bigint primary key,
+  store_id uuid references stores(id) on delete cascade,
+  name text not null,
+  category text not null check (category in ('cake', 'dessert', 'supply')),
+  subtype text not null default 'other',
+  quantity int not null default 0 check (quantity >= 0),
+  par int not null default 2 check (par >= 0),
+  unit text not null default '개',
+  size_label text not null default '',
+  location text not null default '',
+  expiry_date date,
+  pack_size int check (pack_size is null or pack_size > 0),
+  available boolean default true,
+  created_at timestamptz default now()
 );
 
 create table workers (
@@ -113,7 +136,7 @@ create index on activity_log (store_id, created_at desc);
 do $$
 declare t text;
 begin
-  foreach t in array array['stores','flavors','cabinets','storage','workers','shifts','payroll_extras','sales','activity_log']
+  foreach t in array array['stores','flavors','cabinets','storage','inventory_products','workers','shifts','payroll_extras','sales','activity_log']
   loop
     execute format('alter table %I enable row level security;', t);
     execute format('drop policy if exists anon_all on %I;', t);

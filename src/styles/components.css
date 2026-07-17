@@ -197,6 +197,9 @@
   letter-spacing: -0.01em;
   overflow: hidden;
 }
+.header-brand .brand-copy { min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.header-brand .brand-copy strong { font-size: var(--fs-md); }
+.header-brand .brand-copy small { margin-top: 3px; color: var(--text-2); font-size: var(--fs-xs); font-weight: 600; }
 .header-brand .store-name {
   white-space: nowrap;
   overflow: hidden;
@@ -226,7 +229,8 @@
   background: var(--surface);
   border-top: 1px solid var(--border);
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: var(--sp-4);
   padding: var(--sp-2) 0 max(var(--sp-3), env(safe-area-inset-bottom));
   z-index: 100;
 }
@@ -240,7 +244,7 @@
   padding: var(--sp-2) var(--sp-5);
   border-radius: var(--r-lg);
   color: var(--text-3);
-  min-width: 76px;
+  min-width: min(180px, 42vw);
 }
 .nav-btn .nav-label {
   font-size: var(--fs-sm);

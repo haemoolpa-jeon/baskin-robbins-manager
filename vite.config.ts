@@ -16,9 +16,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/icon-192.png', 'icons/icon-512.png'],
       manifest: {
-        name: 'BR 매장관리',
-        short_name: 'BR관리',
-        description: '배스킨라빈스 매장 관리 앱',
+        name: 'BR 재고 매니저',
+        short_name: 'BR재고',
+        description: '아이스크림, 케이크, 디저트, 소모품 재고 관리 앱',
         lang: 'ko',
         start_url: '/',
         display: 'standalone',

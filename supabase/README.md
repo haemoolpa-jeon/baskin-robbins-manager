@@ -1,26 +1,29 @@
 # Supabase setup
 
-Run these in the Supabase dashboard → **SQL Editor**, in order:
+Run these files in the Supabase dashboard **SQL Editor**:
 
-1. `schema.sql` — drops & recreates all tables (safe on the sandbox; **destroys existing data**), enables RLS.
-2. `seed.sql` — default store `우리매장`, the standard flavor list, two sample workers.
+1. For a new/demo database, run `schema.sql`, then `seed.sql`.
+2. For an existing database, keep the current data and run the files in `migrations/` in date order.
 
-The app opens directly — there is **no login** (v2 removed accounts/roles). An optional
-4-digit app-lock PIN can be set in 설정; it's stored only on the device, never in the DB.
+`schema.sql` drops and recreates the app tables, so do not run it against a database whose data must be preserved. `20260717_expand_inventory_domains.sql` adds the inventory fields, and `20260717_refresh_official_catalog.sql` non-destructively adds the researched 2026-07-17 menu catalog. New catalog items start at zero stock; existing quantities and custom products remain untouched.
+
+The app opens directly with no login. An optional four-digit app-lock PIN can be set in Settings; it stays on the device and is not stored in Supabase.
 
 ## Data model
 
-One store (`stores`, single row) owns everything: `flavors`, `cabinets`, `storage`,
-`workers`, `shifts`, `payroll_extras`, `sales` (tub-consumption), and `activity_log`
-(the change history shown in 변경 기록).
+One store (`stores`, single row) owns the inventory data:
+
+- `flavors`, `cabinets`, and `storage` for ice cream
+- `inventory_products` for cakes, desserts, and supplies
+- `sales` for tub-consumption estimates
+- `activity_log` for the change history
+
+The older workforce tables (`workers`, `shifts`, and `payroll_extras`) are retained for backward compatibility, but they are no longer exposed by the inventory app shell. A separate workforce app can reuse or migrate them later.
 
 ## Security note
 
-With no accounts, the public anon key is the only client identity, so all tables are
-operable via that key. They hold no credentials or personal data beyond worker names +
-wages. If you ever need true per-user protection, switch to **Supabase Auth** and key
-the RLS policies to `auth.uid()`.
+With no accounts, the public anonymous key is the only client identity, so the current RLS policies permit that key to operate the app tables. For real per-user protection, add Supabase Auth and key the policies to `auth.uid()`.
 
 ## Verifying
 
-`node scripts/verify-supabase.mjs` — checks the store row loads and the tables are reachable.
+Run `node scripts/verify-supabase.mjs` to check that the store row loads and the expected tables are reachable.

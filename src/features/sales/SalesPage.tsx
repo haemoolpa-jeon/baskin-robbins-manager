@@ -9,7 +9,8 @@ import { useCabinets } from '@/data/cabinets'
 import { useConsumption } from '@/data/consumption'
 import { useSetDefaultPar } from '@/data/store'
 import { useLog } from '@/data/activity'
-import type { CabinetName, Flavor } from '@/lib/types'
+import { useProducts } from '@/data/products'
+import { PRODUCT_CATEGORY_LABELS, PRODUCT_CATEGORY_ORDER, type CabinetName, type Flavor } from '@/lib/types'
 import '@/styles/sales.css'
 
 const DAY = 24 * 60 * 60 * 1000
@@ -22,14 +23,17 @@ export function SalesPage() {
   const storageQ = useStorage(storeId)
   const cabinetsQ = useCabinets(storeId)
   const consumptionQ = useConsumption(storeId)
+  const productsQ = useProducts(storeId)
   const setPar = useSetDefaultPar()
 
   const [checked, setChecked] = useState<Set<number>>(new Set())
+  const [checkedProducts, setCheckedProducts] = useState<Set<number>>(new Set())
 
   const flavors = flavorsQ.data ?? []
   const storage = storageQ.data ?? {}
   const cabinets = cabinetsQ.data
   const consumption = consumptionQ.data ?? []
+  const products = productsQ.data ?? []
   const par = defaultPar
 
   const flavorsById = useMemo(() => new Map<number, Flavor>(flavors.map((f) => [f.id, f])), [flavors])
@@ -53,6 +57,26 @@ export function SalesPage() {
       .filter((x) => x.need > 0)
       .sort((a, b) => b.need - a.need)
   }, [flavors, storage, par])
+
+  const productReorder = useMemo(
+    () =>
+      products
+        .filter((product) => product.available && product.quantity < product.par)
+        .map((product) => ({ product, need: product.par - product.quantity }))
+        .sort((a, b) => b.need - a.need),
+    [products],
+  )
+
+  const productReorderByCategory = useMemo(
+    () =>
+      Object.fromEntries(
+        PRODUCT_CATEGORY_ORDER.map((category) => [
+          category,
+          productReorder.filter(({ product }) => product.category === category),
+        ]),
+      ),
+    [productReorder],
+  )
 
   // 소진 순위 (last 30 days).
   const ranking = useMemo(() => {
@@ -78,6 +102,14 @@ export function SalesPage() {
   const toggleCheck = (id: number) =>
     setChecked((prev) => {
       const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+
+  const toggleProductCheck = (id: number) =>
+    setCheckedProducts((previous) => {
+      const next = new Set(previous)
       if (next.has(id)) next.delete(id)
       else next.add(id)
       return next
@@ -121,6 +153,48 @@ export function SalesPage() {
         </div>
       </div>
 
+      {productsQ.isError ? (
+        <div className="section-card">
+          <div className="ok-note" style={{ color: 'var(--danger)' }}>상품 재고 설정이 필요합니다</div>
+        </div>
+      ) : PRODUCT_CATEGORY_ORDER.map((category) => {
+        const items = productReorderByCategory[category] ?? []
+        return (
+          <div className="section-card" key={category}>
+            <div className="section-title">{PRODUCT_CATEGORY_LABELS[category]} 주문 준비</div>
+            {items.length === 0 ? (
+              <div className="ok-note">✅ 부족한 품목이 없습니다</div>
+            ) : items.map(({ product, need }) => {
+            const urgent = product.quantity === 0
+            const isChecked = checkedProducts.has(product.id)
+            return (
+              <div
+                key={product.id}
+                className={`order-item ${urgent ? 'urgent' : ''} ${isChecked ? 'checked' : ''}`}
+              >
+                <button
+                  className={`order-check ${isChecked ? 'on' : ''}`}
+                  onClick={() => toggleProductCheck(product.id)}
+                >
+                  {isChecked ? '✓' : ''}
+                </button>
+                <div className="order-info">
+                  <div className="order-name">
+                    {urgent && '🚨 '}{product.name}
+                  </div>
+                  <div className="order-reason">
+                    현재 {product.quantity}{product.unit} · 목표 {product.par}{product.unit}
+                    {product.packSize ? ` · ${product.unit}당 ${product.packSize}개` : ''}
+                  </div>
+                </div>
+                <div className={`order-qty ${urgent ? 'urgent' : ''}`}>+{need}{product.unit}</div>
+              </div>
+            )
+            })}
+          </div>
+        )
+      })}
+
       <div className="section-card">
         <div className="section-title">🎯 목표 재고</div>
         <div className="par-row">
@@ -138,7 +212,7 @@ export function SalesPage() {
       </div>
 
       <div className="section-card">
-        <div className="section-title">📋 주문 체크리스트</div>
+        <div className="section-title">🍨 아이스크림 주문</div>
         {reorder.length === 0 ? (
           <div className="ok-note">✅ 모든 맛의 재고가 충분합니다!</div>
         ) : (

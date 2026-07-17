@@ -22,11 +22,20 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
   const updateFlavor = useUpdateFlavor(storeId)
   const deleteFlavor = useDeleteFlavor(storeId)
   const [qty, setQty] = useState(currentQty)
+  const [lotNumber, setLotNumber] = useState(flavor.lotNumber)
+  const [expiryDate, setExpiryDate] = useState(flavor.expiryDate ?? '')
+  const [storageLocation, setStorageLocation] = useState(flavor.storageLocation)
   const busy = setStorage.isPending || updateFlavor.isPending || deleteFlavor.isPending
 
   const save = async () => {
     try {
       await setStorage.mutateAsync({ flavorId: flavor.id, quantity: qty })
+      await updateFlavor.mutateAsync({
+        id: flavor.id,
+        lotNumber,
+        expiryDate: expiryDate || null,
+        storageLocation,
+      })
       if (qty !== currentQty) log(`창고 재고 변경: ${flavor.name} ${currentQty}→${qty}통`, '재고')
       toast.success('저장되었습니다')
       onClose()
@@ -84,6 +93,20 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
         <button className="qty-btn plus" onClick={() => setQty((q) => q + 1)}>
           +
         </button>
+      </div>
+      <div className="form-grid-two">
+        <div className="field">
+          <label>가장 가까운 LOT <small>(선택)</small></label>
+          <input className="input" value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} placeholder="텁의 LOT 번호" />
+        </div>
+        <div className="field">
+          <label>소비기한 <small>(선택)</small></label>
+          <input className="input" type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} />
+        </div>
+      </div>
+      <div className="field">
+        <label>보관 위치</label>
+        <input className="input" value={storageLocation} onChange={(event) => setStorageLocation(event.target.value)} placeholder="예: 냉동고 A칸" />
       </div>
       <div className="slot-action-row">
         <button className="btn btn-secondary" onClick={toggleAvailable} disabled={busy}>

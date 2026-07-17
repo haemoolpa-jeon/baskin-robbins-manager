@@ -15,6 +15,9 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
   const [type, setType] = useState<FlavorType>('fixed')
   const [color, setColor] = useState('#ff69b4')
   const [qty, setQty] = useState(0)
+  const [lotNumber, setLotNumber] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [storageLocation, setStorageLocation] = useState('아이스크림 냉동고')
   const [error, setError] = useState('')
   const busy = addFlavor.isPending || setStorage.isPending
 
@@ -22,7 +25,14 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
     if (!name.trim()) return setError('맛 이름을 입력하세요')
     setError('')
     try {
-      const id = await addFlavor.mutateAsync({ name: name.trim(), color, type })
+      const id = await addFlavor.mutateAsync({
+        name: name.trim(),
+        color,
+        type,
+        lotNumber,
+        expiryDate: expiryDate || null,
+        storageLocation,
+      })
       if (qty > 0) await setStorage.mutateAsync({ flavorId: id, quantity: qty })
       log(`새 맛 추가: ${name.trim()}${qty > 0 ? ` (창고 ${qty}통)` : ''}`, '재고')
       toast.success(`${name.trim()} 추가됨`)
@@ -82,6 +92,20 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
             +
           </button>
         </div>
+      </div>
+      <div className="form-grid-two">
+        <div className="field">
+          <label>가장 가까운 LOT <small>(선택)</small></label>
+          <input className="input" value={lotNumber} onChange={(event) => setLotNumber(event.target.value)} placeholder="텁의 LOT 번호" />
+        </div>
+        <div className="field">
+          <label>소비기한 <small>(선택)</small></label>
+          <input className="input" type="date" value={expiryDate} onChange={(event) => setExpiryDate(event.target.value)} />
+        </div>
+      </div>
+      <div className="field">
+        <label>보관 위치</label>
+        <input className="input" value={storageLocation} onChange={(event) => setStorageLocation(event.target.value)} placeholder="예: 냉동고 A칸" />
       </div>
       <div className="form-error">{error}</div>
     </Modal>

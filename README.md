@@ -1,61 +1,45 @@
-# BR 매장관리 (Baskin Robbins Store Manager) v2
+# BR 재고 매니저
 
-A Korean-first, tablet-friendly PWA for running a Baskin Robbins store: 재고(inventory),
-근무(scheduling + payroll), 주문(reorder). Built for a non-technical owner on a 9–11" touch tablet.
+스마트폰과 태블릿에서 사용하는 한국어 우선 매장 재고 PWA입니다. 현재 앱은 재고 업무에만 집중하며,
+근무·급여 관리는 별도 제품으로 분리합니다.
 
-## Stack
+## 관리 범위
 
-- **React 18 + Vite + TypeScript** (SPA, no server)
-- **Supabase** (Postgres) — data + secure name/PIN login via `SECURITY DEFINER` RPCs
-- **TanStack Query** — server state, loading/error/optimistic updates
-- **vite-plugin-pwa** — installable, auto-updating service worker
-- **Pretendard** — Korean web font
+- **아이스크림** — 캐비닛 위치/잔량, 창고 텁 수량, LOT, 소비기한, 보관 위치
+- **케이크** — 일반/미니/큐브/컬렉션, 수량, 목표, 규격, 소비기한, 냉동고 위치
+- **디저트** — 모찌, 마카롱, 롤, 샌드, 스틱바, 블록팩, 레디팩, 선데
+- **소모품** — 컵, 뚜껑, 콘, 스푼, 용기, 쇼핑백, 냅킨, 드라이아이스, 케이크 부자재
+- **주문 준비** — 종류별 목표 재고 미달 체크리스트
 
-## Develop
+각 영역은 검색, 부족 필터, 빠른 실사, 추가, 수정, 사용중지, 삭제를 지원합니다.
+
+## 개발
 
 ```bash
 npm install
-npm run demo             # ← try it now: in-memory sample data, NO backend needed
-
-cp .env.example .env     # (for real use) fill in your Supabase URL + anon key
-npm run dev              # http://localhost:5173 (talks to real Supabase)
-npm run build            # type-check + production build → dist/
-npm run test             # payroll unit tests (Vitest)
+npm run demo       # 백엔드 없이 샘플 재고로 실행
+npm run dev        # .env의 Supabase 사용
+npm run build
+npm test
 ```
 
-**Demo mode** (`npm run demo`) runs the whole app against a fake in-memory backend
-seeded with sample workers/shifts/flavors. Login is pre-filled (점주 / 123456) — just
-tap 로그인. Edits persist to `localStorage`; clear the site's storage to reset.
+## Supabase
 
-## First-time backend setup
+새 설치는 `supabase/schema.sql` 다음 `supabase/seed.sql`을 실행합니다. 기존 v2 설치는 데이터를
+지우는 `schema.sql` 대신 `supabase/migrations/`의 SQL을 날짜 순서로 실행하세요.
 
-The app needs its Supabase backend. In the Supabase dashboard → **SQL Editor**, run the
-files in `supabase/` in order: `schema.sql` → `functions.sql` → `seed.sql`.
-See `supabase/README.md` for details and the security model.
+기본 메뉴 카탈로그는 2026-07-17 기준 배스킨라빈스 코리아 공개 메뉴를 바탕으로 작성했습니다.
+메뉴명만 공식 자료를 따르며, 재고 수량·목표·분류·보관 위치는 매장 운영용 예시입니다. 매장별
+취급 여부가 다를 수 있으므로 첫 실사 후 사용중지와 목표 수량을 조정하세요.
 
-Default login: 이름 `점주` / 비밀번호 `123456` (change on first login).
+## OCR 확장 방향
 
-> If the Supabase project has been idle, the free tier **pauses** it — un-pause it in the
-> dashboard first, or every request fails with a network error.
+납품서 OCR은 인식 결과를 바로 저장하지 않고, 현재 품목명과 대조한 **검토용 입고 초안**을 만드는
+방식이 적합합니다. 점주가 수량과 매칭을 확인한 뒤 재고에 반영하도록 설계합니다.
 
-Verify the backend (read-only): `node scripts/verify-supabase.mjs`.
+## 기술 구성
 
-## Deploy
-
-Vercel auto-detects Vite (`vercel.json` pins framework + `dist/`). Set the two
-`VITE_SUPABASE_*` env vars in the Vercel project. Push to deploy; the PWA auto-updates
-clients on the next visit.
-
-## Layout
-
-```
-src/
-  auth/        AuthProvider (PIN login), LoginScreen
-  components/  Modal, Toast, ConfirmDialog, PromptModal, Spinner, AppShell, ErrorBoundary
-  data/        TanStack Query hooks (flavors, cabinets, storage, workers, shifts, …)
-  features/    inventory/  timesheet/(schedule + payslip)  sales/(reorder)  admin/
-  lib/         supabase, types, payroll (+ tests), date, time, money
-  styles/      tokens + global + per-feature CSS
-supabase/      schema.sql, functions.sql, seed.sql, README.md
-legacy/        the previous vanilla-JS app (kept for reference)
-```
+- React 18, TypeScript, Vite
+- Supabase Postgres
+- TanStack Query
+- vite-plugin-pwa

@@ -23,6 +23,7 @@ export function CabinetView({ cabinet, cabinets, flavorsById, moveSource, onSlot
               key={`${row}-${i}`}
               slot={data[row][i]}
               flavor={data[row][i] ? flavorsById.get(data[row][i]!.flavorId) : undefined}
+              positionLabel={`${cabinet === 'cab1' ? '캐비닛 1' : '캐비닛 2'} ${row === 'top' ? '진열' : '대기'} ${i + 1}번`}
               moveActive={!!moveSource}
               isSource={
                 !!moveSource &&
@@ -50,12 +51,14 @@ export function CabinetView({ cabinet, cabinets, flavorsById, moveSource, onSlot
 function SlotCell({
   slot,
   flavor,
+  positionLabel,
   moveActive,
   isSource,
   onTap,
 }: {
   slot: Slot | null
   flavor?: Flavor
+  positionLabel: string
   moveActive: boolean
   isSource: boolean
   onTap: () => void
@@ -65,7 +68,7 @@ function SlotCell({
       <button
         className={`slot empty ${moveActive ? 'move-target' : ''}`}
         onClick={onTap}
-        aria-label="빈 칸"
+        aria-label={`${positionLabel}, 빈 칸`}
       >
         <span className="slot-empty">+</span>
       </button>
@@ -77,7 +80,7 @@ function SlotCell({
       className={`slot filled ${levelClass} ${moveActive ? 'move-target' : ''} ${isSource ? 'is-source' : ''}`}
       style={{ ['--slot-color' as string]: flavor?.color ?? '#ccc' }}
       onClick={onTap}
-      aria-label={flavor?.name ?? '맛'}
+      aria-label={`${positionLabel}, ${flavor?.name ?? '알 수 없는 맛'}, ${slot.level}%`}
     >
       <span className="slot-tub">🍨</span>
       <span className="slot-name">{flavor?.name ?? '?'}</span>

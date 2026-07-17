@@ -91,6 +91,7 @@ export function SlotModal({ pos, slot, flavors, storage, storeId, onClose, onMov
           toast.error(e instanceof Error ? e.message : '교체 실패')
         }
       }}
+      storageQty={storage[slot.flavorId] ?? 0}
       onEmpty={async () => {
         try {
           await setSlot.mutateAsync({ pos, slot: null })
@@ -139,7 +140,7 @@ function AssignPicker({
   return (
     <Modal title={`📍 ${posLabel(pos)}`} subtitle="진열할 맛을 선택하세요" onClose={onClose}>
       <input
-        className="input storage-search"
+        className="input assign-search"
         placeholder="🔍 맛 검색…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -164,12 +165,14 @@ function AssignPicker({
                 key={f.id}
                 className="flv-btn"
                 style={{ ['--slot-color' as string]: f.color }}
-                disabled={busy}
+                disabled={busy || (storage[f.id] ?? 0) <= 0}
                 onClick={() => onPick(f)}
               >
                 <span style={{ fontSize: 24 }}>🍨</span>
                 <span className="flv-name">{f.name}</span>
-                <span className="flv-stock">창고 {storage[f.id] ?? 0}</span>
+                <span className={`flv-stock ${(storage[f.id] ?? 0) <= 0 ? 'empty' : ''}`}>
+                  {(storage[f.id] ?? 0) > 0 ? `창고 ${storage[f.id]}통` : '재고 없음'}
+                </span>
               </button>
             ))}
           </div>
@@ -190,6 +193,7 @@ function FilledSlot({
   onEmpty,
   onMove,
   busy,
+  storageQty,
 }: {
   pos: SlotPos
   slot: Slot
@@ -200,6 +204,7 @@ function FilledSlot({
   onEmpty: () => void
   onMove: () => void
   busy: boolean
+  storageQty: number
 }) {
   const [level, setLevel] = useState(slot.level)
 
@@ -243,8 +248,8 @@ function FilledSlot({
       </div>
 
       <div className="slot-action-row">
-        <button className="btn btn-secondary" onClick={onReplace} disabled={busy}>
-          🔄 새 통으로 교체
+        <button className="btn btn-secondary" onClick={onReplace} disabled={busy || storageQty <= 0}>
+          {storageQty > 0 ? `🔄 새 통으로 교체 (창고 ${storageQty})` : '창고 재고 없음'}
         </button>
       </div>
       <div className="slot-action-row">

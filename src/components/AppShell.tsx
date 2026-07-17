@@ -1,19 +1,17 @@
 import { useState } from 'react'
-import { IceCream, Users, ShoppingCart, Settings, History } from 'lucide-react'
+import { Boxes, ShoppingCart, Settings, History } from 'lucide-react'
 import { useApp } from '@/app/AppProvider'
 import { Spinner } from '@/components/Spinner'
 import { SettingsModal } from '@/features/settings/SettingsModal'
 import { HistoryModal } from '@/features/settings/HistoryModal'
 import { InventoryPage } from '@/features/inventory/InventoryPage'
-import { TimesheetPage } from '@/features/timesheet/TimesheetPage'
 import { SalesPage } from '@/features/sales/SalesPage'
 
-type Tab = 'inventory' | 'timesheet' | 'sales'
+type Tab = 'inventory' | 'sales'
 
-const TABS: { key: Tab; label: string; Icon: typeof IceCream }[] = [
-  { key: 'inventory', label: '재고', Icon: IceCream },
-  { key: 'timesheet', label: '근무', Icon: Users },
-  { key: 'sales', label: '주문', Icon: ShoppingCart },
+const TABS: { key: Tab; label: string; Icon: typeof Boxes }[] = [
+  { key: 'inventory', label: '재고 관리', Icon: Boxes },
+  { key: 'sales', label: '주문 준비', Icon: ShoppingCart },
 ]
 
 export function AppShell() {
@@ -38,8 +36,11 @@ export function AppShell() {
     <div className="app-shell">
       <header className="app-header">
         <div className="header-brand">
-          <span style={{ fontSize: 22 }}>🍨</span>
-          <span className="store-name">{storeName}</span>
+          <span style={{ fontSize: 22 }}>📦</span>
+          <span className="brand-copy">
+            <strong>재고 매니저</strong>
+            <small className="store-name">{storeName}</small>
+          </span>
         </div>
         <button className="header-icon" onClick={() => setOverlay('history')} aria-label="변경 기록">
           <History size={24} />
@@ -51,7 +52,6 @@ export function AppShell() {
 
       <main>
         {tab === 'inventory' && <InventoryPage />}
-        {tab === 'timesheet' && <TimesheetPage />}
         {tab === 'sales' && <SalesPage />}
       </main>
 

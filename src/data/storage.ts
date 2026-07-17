@@ -43,3 +43,21 @@ export function useSetStorage(storeId: string | null) {
     onSuccess: () => qc.invalidateQueries({ queryKey: storageKeys.all(storeId ?? '') }),
   })
 }
+
+export function useSetStorageBatch(storeId: string | null) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (items: { flavorId: number; quantity: number }[]) => {
+      if (!storeId) throw new Error('매장이 선택되지 않았습니다')
+      if (items.length === 0) return
+      const rows = items.map(({ flavorId, quantity }) => ({
+        store_id: storeId,
+        flavor_id: flavorId,
+        quantity: Math.max(0, quantity),
+      }))
+      const { error } = await supabase.from('storage').upsert(rows, { onConflict: 'store_id,flavor_id' })
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: storageKeys.all(storeId ?? '') }),
+  })
+}

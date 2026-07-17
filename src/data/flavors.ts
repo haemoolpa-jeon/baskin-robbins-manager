@@ -10,6 +10,9 @@ interface FlavorRow {
   color: string
   type: FlavorType
   available: boolean
+  lot_number: string | null
+  expiry_date: string | null
+  storage_location: string | null
 }
 
 const mapFlavor = (r: FlavorRow): Flavor => ({
@@ -18,6 +21,9 @@ const mapFlavor = (r: FlavorRow): Flavor => ({
   color: r.color,
   type: r.type,
   available: r.available,
+  lotNumber: r.lot_number ?? '',
+  expiryDate: r.expiry_date,
+  storageLocation: r.storage_location ?? '',
 })
 
 export function useFlavors(storeId: string | null) {
@@ -41,6 +47,9 @@ export interface NewFlavor {
   name: string
   color: string
   type: FlavorType
+  lotNumber: string
+  expiryDate: string | null
+  storageLocation: string
 }
 
 export function useAddFlavor(storeId: string | null) {
@@ -50,7 +59,17 @@ export function useAddFlavor(storeId: string | null) {
       const id = Date.now()
       const { error } = await supabase
         .from('flavors')
-        .insert({ id, store_id: storeId, name: f.name, color: f.color, type: f.type, available: true })
+        .insert({
+          id,
+          store_id: storeId,
+          name: f.name,
+          color: f.color,
+          type: f.type,
+          lot_number: f.lotNumber || null,
+          expiry_date: f.expiryDate || null,
+          storage_location: f.storageLocation || '',
+          available: true,
+        })
       if (error) throw error
       return id
     },
@@ -67,6 +86,9 @@ export function useUpdateFlavor(storeId: string | null) {
       if (f.color !== undefined) patch.color = f.color
       if (f.type !== undefined) patch.type = f.type
       if (f.available !== undefined) patch.available = f.available
+      if (f.lotNumber !== undefined) patch.lot_number = f.lotNumber || null
+      if (f.expiryDate !== undefined) patch.expiry_date = f.expiryDate || null
+      if (f.storageLocation !== undefined) patch.storage_location = f.storageLocation
       const { error } = await supabase.from('flavors').update(patch).eq('id', f.id)
       if (error) throw error
     },
