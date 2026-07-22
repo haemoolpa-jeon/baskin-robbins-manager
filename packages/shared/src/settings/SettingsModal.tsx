@@ -1,22 +1,22 @@
-import { useState } from 'react'
 import { Store, Lock, LockOpen, Pencil } from 'lucide-react'
 import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
 import { useConfirm } from '@shared/components/ConfirmDialog'
 import { usePrompt } from '@shared/components/PromptModal'
 import { useApp } from '@shared/app/AppProvider'
-import { useRenameStore } from '@shared/data/store'
+import { useRenameStore, useSetAppPin } from '@shared/data/store'
 import { useLog } from '@shared/data/activity'
-import { hasPin, setStoredPin } from '@shared/app/pin'
+import { markUnlocked } from '@shared/app/pin'
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
-  const { storeId, storeName } = useApp()
+  const { storeId, storeName, appPin } = useApp()
   const toast = useToast()
   const confirm = useConfirm()
   const prompt = usePrompt()
   const renameStore = useRenameStore()
+  const setAppPin = useSetAppPin()
   const log = useLog(storeId)
-  const [pinOn, setPinOn] = useState(hasPin())
+  const pinOn = !!appPin
 
   const editName = async () => {
     const name = await prompt({ title: '매장 이름', label: '매장 이름', initialValue: storeName, confirmText: '저장' })
@@ -34,17 +34,27 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     const pin = await prompt({ title: '비밀번호 설정', label: '숫자 4자리', type: 'number', confirmText: '설정' })
     if (pin === null) return
     if (!/^\d{4}$/.test(pin)) return toast.error('숫자 4자리를 입력하세요')
-    setStoredPin(pin)
-    setPinOn(true)
-    toast.success('비밀번호가 설정되었습니다')
+    if (!storeId) return
+    try {
+      await setAppPin.mutateAsync({ id: storeId, pin })
+      markUnlocked() // keep the device that just set it unlocked
+      log('앱 잠금 비밀번호 설정/변경', '설정')
+      toast.success('비밀번호가 설정되었습니다 (모든 기기 적용)')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : '설정 실패')
+    }
   }
 
   const removePin = async () => {
-    const ok = await confirm({ title: '잠금 끄기', message: '앱 비밀번호 잠금을 끌까요?', confirmText: '끄기' })
-    if (!ok) return
-    setStoredPin(null)
-    setPinOn(false)
-    toast.success('잠금이 해제되었습니다')
+    const ok = await confirm({ title: '잠금 끄기', message: '모든 기기에서 앱 잠금을 끌까요?', confirmText: '끄기' })
+    if (!ok || !storeId) return
+    try {
+      await setAppPin.mutateAsync({ id: storeId, pin: null })
+      log('앱 잠금 해제', '설정')
+      toast.success('잠금이 해제되었습니다')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : '해제 실패')
+    }
   }
 
   return (

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Delete } from 'lucide-react'
-import { getStoredPin, markUnlocked } from './pin'
+import { markUnlocked } from './pin'
 import '@shared/styles/pinlock.css'
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-export function PinLock({ onUnlock }: { onUnlock: () => void }) {
+export function PinLock({ expectedPin, onUnlock }: { expectedPin: string; onUnlock: () => void }) {
   const [entered, setEntered] = useState('')
   const [error, setError] = useState(false)
 
@@ -14,7 +14,7 @@ export function PinLock({ onUnlock }: { onUnlock: () => void }) {
     const next = entered + digit
     setError(false)
     if (next.length === 4) {
-      if (next === getStoredPin()) {
+      if (next === expectedPin) {
         markUnlocked()
         onUnlock()
       } else {

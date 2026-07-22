@@ -57,6 +57,10 @@ svg {
 .app-shell {
   min-height: 100vh;
   padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  /* Clip any accidental horizontal overflow so the phone never scrolls sideways.
+     `clip` (not `hidden`) avoids creating a scroll container that would break the
+     sticky header/domain-tabs. */
+  overflow-x: clip;
 }
 
 .page {

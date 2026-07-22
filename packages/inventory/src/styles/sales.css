@@ -1,7 +1,7 @@
 /* Order/stock tab: summary cards, par setting, reorder checklist, 소진 ranking. */
 
 .stat-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); margin-bottom: var(--sp-3); }
-@media (min-width: 700px) {
+@media (min-width: 820px) {
   .stat-cards { grid-template-columns: repeat(4, 1fr); }
 }
 .stat-card {

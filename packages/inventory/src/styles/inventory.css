@@ -389,7 +389,9 @@
 .cal-day-row strong { flex: 0 0 auto; }
 .cal-restore { margin-top: var(--sp-4); gap: var(--sp-2); }
 
-@media (min-width: 700px) {
+/* Tablet layout kicks in at ~820px so phones (and zoomed-out views) keep the
+   roomier 2-col / 3-col grids instead of a cramped tablet grid. */
+@media (min-width: 820px) {
   .cab-grid { grid-template-columns: repeat(8, 1fr); }
   .storage-grid { grid-template-columns: repeat(5, 1fr); }
   .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -402,8 +404,11 @@
 @media (max-width: 520px) {
   .inventory-page { padding-left: var(--sp-3); padding-right: var(--sp-3); }
   .inventory-page-heading .page-title { font-size: var(--fs-xl); }
-  .storage-tools { align-items: stretch; }
-  .count-mode-btn { padding: 0 var(--sp-2); }
+  /* Stack search over the quick-count button so the button is always fully
+     visible (never pushed off the right edge) on narrow phones. */
+  .storage-tools { flex-wrap: wrap; }
+  .storage-tools .search-input { flex-basis: 100%; }
+  .count-mode-btn { width: 100%; justify-content: center; padding: 0 var(--sp-2); }
   .count-row { gap: var(--sp-2); padding: var(--sp-2); }
   .product-form-counts,
   .form-grid-two { grid-template-columns: 1fr; gap: 0; }

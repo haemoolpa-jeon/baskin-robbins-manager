@@ -21,6 +21,7 @@ create table stores (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   default_par int default 2, -- 목표 재고: 맛별 유지 통 수 (주문 추천 기준)
+  app_pin text,              -- store-wide app-lock PIN (soft lock); null = no lock
   created_at timestamptz default now()
 );
 

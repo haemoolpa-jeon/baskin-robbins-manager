@@ -10,6 +10,7 @@ interface AppValue {
   storeId: string | null
   storeName: string
   defaultPar: number
+  appPin: string | null
   yearMonth: string
   setYearMonth: (ym: string) => void
   isLoading: boolean
@@ -29,6 +30,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       storeId: storeQ.data?.id ?? null,
       storeName: storeQ.data?.name ?? '매장',
       defaultPar: storeQ.data?.defaultPar ?? 2,
+      appPin: storeQ.data?.appPin ?? null,
       yearMonth,
       setYearMonth,
       isLoading: storeQ.isLoading,
