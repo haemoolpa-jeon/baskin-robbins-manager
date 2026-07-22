@@ -403,7 +403,18 @@
   .storage-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
   .storage-section { grid-column: 1 / -1; }
   .storage-item { flex-direction: column; align-items: center; text-align: center; min-height: 0; padding: var(--sp-3) var(--sp-2); }
-  .storage-tub { display: block; font-size: 34px; }
+  .storage-tub {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto var(--sp-1);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--tub, #cccccc) 22%, #fff);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--tub, #cccccc) 45%, #fff);
+    font-size: 26px;
+    line-height: 1;
+  }
   .storage-name { flex: none; width: 100%; margin: var(--sp-1) 0 2px; font-size: var(--fs-sm); }
   .storage-badge { position: absolute; top: 4px; right: 4px; }
 }

@@ -80,9 +80,7 @@ export function StorageView({
                     className={`storage-item ${f.available ? '' : 'unavailable'}`}
                     onClick={() => onItemTap(f.id)}
                   >
-                    <div className="storage-tub" style={{ textShadow: `0 0 10px ${f.color}` }}>
-                      🍨
-                    </div>
+                    <span className="storage-tub" style={{ ['--tub' as string]: f.color }}>🍨</span>
                     <div className="storage-name">{f.name}</div>
                     <div className={`storage-count ${status === 'ok' ? '' : status}`}>{qty}통</div>
                     {!f.available && <div className="storage-badge">판매중지</div>}
