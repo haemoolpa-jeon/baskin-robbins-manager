@@ -84,27 +84,19 @@ the 근무·급여 app live too.
 Free projects **pause after ~7 days of no activity**. A store used daily never hits this.
 If you ever have a long closure, either open the app once, or rely on the keep-alive below.
 
-### Backups (free)
-The free tier has limited/no automated backups. A **GitHub Actions cron** covers both
-backup and keep-alive at ₩0. Sketch (`.github/workflows/backup.yml`):
+### Backups + keep-alive (free)
+The free tier has limited/no automated backups **and pauses after ~7 days idle** — that is
+exactly what took down the old 2024 project. Both are covered at ₩0 by a committed workflow:
+**`.github/workflows/supabase-keepalive-backup.yml`**. It runs daily to (1) send a REST request
+that resets the inactivity timer and (2) upload a `pg_dump` artifact (30-day retention).
 
-```yaml
-name: db-backup
-on:
-  schedule: [{ cron: '0 18 * * *' }]   # daily; UTC (03:00 KST)
-  workflow_dispatch:
-jobs:
-  dump:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: pg_dump "$DB_URL" > backup-$(date +%F).sql
-        env: { DB_URL: ${{ secrets.SUPABASE_DB_URL }} }
-      - uses: actions/upload-artifact@v4
-        with: { name: db-backup, path: backup-*.sql, retention-days: 30 }
-```
-Add `SUPABASE_DB_URL` (Settings → Database → connection string) as a repo secret. Hitting
-the DB daily also keeps the project awake. (Data is small — a single store — so dumps are tiny.)
+Add these repo secrets (Settings → Secrets and variables → Actions):
+- `SUPABASE_URL` — Project URL (Settings → API)
+- `SUPABASE_ANON_KEY` — anon public key (Settings → API)
+- `SUPABASE_DB_URL` — Postgres URI (Settings → Database → Connection string → URI)
+
+Then open the **Actions** tab → *Run workflow* once to confirm it works. Dumps are tiny for a
+single store. For point-in-time backups, that's Supabase Pro.
 
 ### Security posture
 No accounts; the public anon key is the only client identity and RLS policies allow it to

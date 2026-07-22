@@ -1,0 +1,49 @@
+name: Supabase keep-alive + backup
+
+# Runs daily to (1) keep the free-tier Supabase project awake — a real API request
+# resets the ~7-day inactivity timer that paused the old project — and (2) take a
+# pg_dump backup uploaded as a downloadable artifact. Both are free.
+#
+# Repo secrets required (Settings → Secrets and variables → Actions):
+#   SUPABASE_URL       e.g. https://xxxx.supabase.co   (Settings → API → Project URL)
+#   SUPABASE_ANON_KEY  the anon public key             (Settings → API)
+#   SUPABASE_DB_URL    postgres connection string      (Settings → Database → Connection string → URI)
+
+on:
+  schedule:
+    - cron: '0 18 * * *' # 18:00 UTC = 03:00 KST, daily
+  workflow_dispatch: {}
+
+jobs:
+  keepalive-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Keep-alive ping (REST request counts as activity)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "$SUPABASE_URL/rest/v1/stores?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "keep-alive HTTP $code"
+          # 200 = ok. Fail the run on 5xx so a broken backend is visible.
+          [ "$code" -lt 500 ]
+
+      - name: Database backup (pg_dump)
+        env:
+          PGURL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          # pg_dump from a pinned Postgres image so the client version matches the
+          # managed server (>= server version required). Bump if Supabase upgrades.
+          docker run --rm -e PGURL postgres:17-alpine \
+            sh -c 'pg_dump "$PGURL" --no-owner --no-privileges' > "backup-$(date -u +%Y%m%d).sql"
+          echo "backup size: $(wc -c < backup-*.sql) bytes"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup-*.sql
+          retention-days: 30
