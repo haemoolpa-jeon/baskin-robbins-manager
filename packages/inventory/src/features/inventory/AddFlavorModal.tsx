@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
+import { Stepper } from '@shared/components/Stepper'
+import { ChipTabs } from '@shared/components/ChipTabs'
 import { useAddFlavor } from '@/data/flavors'
 import { useSetStorage } from '@/data/storage'
 import { useLog } from '@shared/data/activity'
@@ -52,6 +54,7 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
             취소
           </button>
           <button className="btn btn-primary" onClick={submit} disabled={busy}>
+            {busy && <span className="btn-spinner" aria-hidden="true" />}
             추가
           </button>
         </>
@@ -63,35 +66,25 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
       </div>
       <div className="field">
         <label>종류</label>
-        <div className="type-tabs">
-          {FLAVOR_TYPE_ORDER.map((t) => (
-            <button key={t} className={`type-tab ${type === t ? 'active' : ''}`} onClick={() => setType(t)}>
-              {FLAVOR_TYPE_LABELS[t]}
-            </button>
-          ))}
-        </div>
+        <ChipTabs
+          ariaLabel="맛 종류"
+          value={type}
+          onChange={setType}
+          options={FLAVOR_TYPE_ORDER.map((t) => ({ value: t, label: FLAVOR_TYPE_LABELS[t] }))}
+        />
       </div>
       <div className="field">
         <label>색상</label>
         <input
-          className="input"
+          className="input input-color"
           type="color"
           value={color}
           onChange={(e) => setColor(e.target.value)}
-          style={{ height: 52, padding: 4 }}
         />
       </div>
       <div className="field">
         <label>창고 수량 (통)</label>
-        <div className="qty-control">
-          <button className="qty-btn minus" onClick={() => setQty((q) => Math.max(0, q - 1))}>
-            −
-          </button>
-          <span className="qty-display">{qty}</span>
-          <button className="qty-btn plus" onClick={() => setQty((q) => q + 1)}>
-            +
-          </button>
-        </div>
+        <Stepper size="lg" ariaLabel="창고 수량" value={qty} onChange={setQty} />
       </div>
       <div className="form-grid-two">
         <div className="field">

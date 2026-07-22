@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Modal } from '@shared/components/Modal'
 import { useConfirm } from '@shared/components/ConfirmDialog'
 import { useToast } from '@shared/components/Toast'
+import { Segmented } from '@shared/components/Segmented'
+import { Stepper } from '@shared/components/Stepper'
 import { useLog } from '@shared/data/activity'
 import { useDeleteProduct, useSaveProduct } from '@/data/products'
 import {
@@ -104,19 +106,20 @@ export function ProductModal({ product, defaultCategory, storeId, onClose }: Pro
       actions={
         <>
           <button className="btn" onClick={onClose}>취소</button>
-          <button className="btn btn-primary" onClick={save} disabled={busy}>저장</button>
+          <button className="btn btn-primary" onClick={save} disabled={busy}>
+            {busy && <span className="btn-spinner" aria-hidden="true" />}저장
+          </button>
         </>
       }
     >
       <div className="field">
         <label>재고 종류</label>
-        <div className="product-domain-select">
-          {PRODUCT_CATEGORY_ORDER.map((value) => (
-            <button key={value} className={category === value ? 'active' : ''} onClick={() => changeCategory(value)}>
-              {PRODUCT_CATEGORY_LABELS[value]}
-            </button>
-          ))}
-        </div>
+        <Segmented
+          ariaLabel="재고 종류"
+          value={category}
+          onChange={changeCategory}
+          options={PRODUCT_CATEGORY_ORDER.map((value) => ({ value, label: PRODUCT_CATEGORY_LABELS[value] }))}
+        />
       </div>
       <div className="field">
         <label htmlFor="product-name">품목 이름</label>
@@ -218,18 +221,7 @@ function QuantityField({ label, value, onChange }: { label: string; value: numbe
   return (
     <div className="field">
       <label>{label}</label>
-      <div className="mini-stepper">
-        <button onClick={() => onChange(Math.max(0, value - 1))} disabled={value === 0}>−</button>
-        <input
-          type="number"
-          min={0}
-          inputMode="numeric"
-          value={value}
-          onChange={(event) => onChange(Math.max(0, Number(event.target.value)))}
-          aria-label={label}
-        />
-        <button onClick={() => onChange(value + 1)}>+</button>
-      </div>
+      <Stepper size="md" ariaLabel={label} value={value} onChange={onChange} />
     </div>
   )
 }

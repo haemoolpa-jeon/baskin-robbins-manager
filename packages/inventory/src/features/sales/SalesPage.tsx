@@ -3,6 +3,7 @@ import { Package, ArrowUpToLine, IceCream, Flame } from 'lucide-react'
 import { useApp } from '@shared/app/AppProvider'
 import { useToast } from '@shared/components/Toast'
 import { Spinner } from '@shared/components/Spinner'
+import { Stepper } from '@shared/components/Stepper'
 import { useFlavors } from '@/data/flavors'
 import { useStorage } from '@/data/storage'
 import { useCabinets } from '@/data/cabinets'
@@ -115,12 +116,13 @@ export function SalesPage() {
       return next
     })
 
-  const changePar = async (delta: number) => {
+  const applyPar = async (next: number) => {
     if (!storeId) return
-    const next = Math.max(0, par + delta)
+    const clamped = Math.max(0, next)
+    if (clamped === par) return
     try {
-      await setPar.mutateAsync({ id: storeId, par: next })
-      log(`목표 재고 변경: 각 맛 ${next}통`, '주문')
+      await setPar.mutateAsync({ id: storeId, par: clamped })
+      log(`목표 재고 변경: 각 맛 ${clamped}통`, '주문')
     } catch (e) {
       toast.error(e instanceof Error ? e.message : '변경 실패')
     }
@@ -155,7 +157,7 @@ export function SalesPage() {
 
       {productsQ.isError ? (
         <div className="section-card">
-          <div className="ok-note" style={{ color: 'var(--danger)' }}>상품 재고 설정이 필요합니다</div>
+          <div className="ok-note">상품 재고 목록을 준비 중입니다. 잠시 후 다시 확인해 주세요.</div>
         </div>
       ) : PRODUCT_CATEGORY_ORDER.map((category) => {
         const items = productReorderByCategory[category] ?? []
@@ -196,23 +198,15 @@ export function SalesPage() {
       })}
 
       <div className="section-card">
-        <div className="section-title">🎯 목표 재고</div>
-        <div className="par-row">
-          <span className="label">각 맛</span>
-          <div className="par-stepper">
-            <button onClick={() => changePar(-1)} disabled={par <= 0}>
-              −
-            </button>
-            <span className="par-value">{par}</span>
-            <button onClick={() => changePar(1)}>+</button>
+        <div className="section-head">
+          <div className="section-title">🍨 아이스크림 주문</div>
+          <div className="par-inline">
+            <span className="label">목표</span>
+            <Stepper size="sm" ariaLabel="목표 재고 통 수" value={par} onChange={applyPar} />
+            <span className="label">통</span>
           </div>
-          <span className="label">통씩 유지</span>
         </div>
-        <div className="par-hint">창고 재고가 {par}통보다 적으면 아래에 주문 추천이 표시됩니다</div>
-      </div>
-
-      <div className="section-card">
-        <div className="section-title">🍨 아이스크림 주문</div>
+        <div className="par-hint">창고 재고가 {par}통보다 적은 맛을 아래에 표시합니다</div>
         {reorder.length === 0 ? (
           <div className="ok-note">✅ 모든 맛의 재고가 충분합니다!</div>
         ) : (
@@ -246,9 +240,7 @@ export function SalesPage() {
       <div className="section-card">
         <div className="section-title">🔥 많이 나간 맛 (최근 30일)</div>
         {ranking.length === 0 ? (
-          <div className="ok-note" style={{ color: 'var(--text-3)' }}>
-            아직 소진 기록이 없습니다
-          </div>
+          <div className="ok-note">아직 소진 기록이 없습니다</div>
         ) : (
           ranking.map((r, i) => (
             <div className="rank-item" key={r.flavor!.id}>

@@ -4,6 +4,8 @@ import { useApp } from '@shared/app/AppProvider'
 import { useLog } from '@shared/data/activity'
 import { useToast } from '@shared/components/Toast'
 import { Spinner } from '@shared/components/Spinner'
+import { Segmented } from '@shared/components/Segmented'
+import { ErrorState } from '@shared/components/ErrorState'
 import { useFlavors } from '@/data/flavors'
 import { useCabinets, useSwapSlots, type SlotPos } from '@/data/cabinets'
 import { useStorage } from '@/data/storage'
@@ -82,7 +84,7 @@ export function InventoryPage() {
     return (
       <div className="page">
         <h1 className="page-title">재고 관리</h1>
-        <div className="card inventory-error">데이터를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>
+        <ErrorState onRetry={() => { flavorsQ.refetch(); cabinetsQ.refetch(); storageQ.refetch() }} />
       </div>
     )
   }
@@ -162,11 +164,16 @@ export function InventoryPage() {
               <PackagePlus size={20} /> 추가
             </button>
           </div>
-          <div className="ice-view-tabs">
-            <button className={iceView === 'storage' ? 'active' : ''} onClick={() => setIceView('storage')}>창고 재고</button>
-            <button className={iceView === 'cab1' ? 'active' : ''} onClick={() => setIceView('cab1')}>캐비닛 1</button>
-            <button className={iceView === 'cab2' ? 'active' : ''} onClick={() => setIceView('cab2')}>캐비닛 2</button>
-          </div>
+          <Segmented
+            ariaLabel="아이스크림 보기"
+            value={iceView}
+            onChange={setIceView}
+            options={[
+              { value: 'storage', label: '창고 재고' },
+              { value: 'cab1', label: '캐비닛 1' },
+              { value: 'cab2', label: '캐비닛 2' },
+            ]}
+          />
 
           {moveSource && (
             <div className="move-banner">
@@ -208,7 +215,11 @@ export function InventoryPage() {
       ) : productsQ.isLoading ? (
         <Spinner center />
       ) : productsQ.isError ? (
-        <div className="card product-setup-note">최신 Supabase 재고 마이그레이션을 실행해 주세요.</div>
+        <ErrorState
+          title="이 목록을 준비 중입니다"
+          hint="잠시 후 다시 확인해 주세요. 계속 보이면 매장 설정을 점검해 주세요."
+          onRetry={() => productsQ.refetch()}
+        />
       ) : (
         <ProductInventoryView
           category={domain}

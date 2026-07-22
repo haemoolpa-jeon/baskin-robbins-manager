@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
-import { Search } from 'lucide-react'
 import { Modal } from '@shared/components/Modal'
 import { useConfirm } from '@shared/components/ConfirmDialog'
 import { useToast } from '@shared/components/Toast'
+import { SearchInput } from '@shared/components/SearchInput'
+import { ChipTabs } from '@shared/components/ChipTabs'
+import { Stepper } from '@shared/components/Stepper'
 import { useLog } from '@shared/data/activity'
 import { useSetStorageBatch } from '@/data/storage'
+import { stockStatus } from '@/lib/stock'
 import type { Flavor, Storage } from '@/lib/types'
 
 interface Props {
@@ -49,13 +52,21 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
   }, [changed, draft, filter, flavors, query, targetPar])
 
   const setQty = (flavorId: number, value: number) =>
-    setDraft((current) => ({ ...current, [flavorId]: Math.max(0, Math.floor(value || 0)) }))
+    setDraft((current) => ({ ...current, [flavorId]: value }))
 
-  const clearAll = () =>
+  const clearAll = async () => {
+    const ok = await confirm({
+      title: '전체 0으로',
+      message: '판매중인 모든 맛의 수량을 0으로 바꿀까요? 저장 전에는 되돌릴 수 있어요.',
+      danger: true,
+      confirmText: '0으로',
+    })
+    if (!ok) return
     setDraft((current) => ({
       ...current,
       ...Object.fromEntries(flavors.filter((flavor) => flavor.available).map((flavor) => [flavor.id, 0])),
     }))
+  }
 
   const requestClose = async () => {
     if (changedIds.length === 0) return onClose()
@@ -97,30 +108,24 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
             onClick={save}
             disabled={saveBatch.isPending || changedIds.length === 0}
           >
+            {saveBatch.isPending && <span className="btn-spinner" aria-hidden="true" />}
             {changedIds.length > 0 ? `${changedIds.length}개 변경 저장` : '변경 없음'}
           </button>
         </>
       }
     >
-      <label className="count-search">
-        <Search size={20} aria-hidden="true" />
-        <input
-          aria-label="맛 검색"
-          placeholder="맛 이름 검색"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
+      <SearchInput ariaLabel="맛 검색" placeholder="맛 이름 검색" value={query} onChange={setQuery} />
+      <div className="count-toolbar">
+        <ChipTabs
+          ariaLabel="실사 목록 필터"
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: 'all', label: '전체' },
+            { value: 'low', label: '부족' },
+            { value: 'changed', label: '변경', count: changedIds.length },
+          ]}
         />
-      </label>
-      <div className="count-filters" aria-label="실사 목록 필터">
-        <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
-          전체
-        </button>
-        <button className={filter === 'low' ? 'active' : ''} onClick={() => setFilter('low')}>
-          부족
-        </button>
-        <button className={filter === 'changed' ? 'active' : ''} onClick={() => setFilter('changed')}>
-          변경 {changedIds.length}
-        </button>
         <button className="count-clear-all" onClick={clearAll}>
           전체 0으로
         </button>
@@ -130,43 +135,26 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
         {visible.length === 0 && <div className="no-result">표시할 맛이 없습니다</div>}
         {visible.map((flavor) => {
           const qty = draft[flavor.id] ?? 0
-          const isChanged = changed.has(flavor.id)
+          const status = stockStatus(qty, targetPar)
           return (
-            <div className={`count-row ${isChanged ? 'changed' : ''}`} key={flavor.id}>
+            <div className={`count-row ${changed.has(flavor.id) ? 'changed' : ''}`} key={flavor.id}>
               <span className="count-color" style={{ background: flavor.color }} />
               <div className="count-name">
                 <strong>{flavor.name}</strong>
                 <span>
-                  {qty === 0
+                  {status === 'empty'
                     ? '품절'
-                    : qty < targetPar
+                    : status === 'low'
                       ? `목표보다 ${targetPar - qty}통 부족`
                       : '재고 충분'}
                 </span>
               </div>
-              <div className="count-stepper">
-                <button
-                  aria-label={`${flavor.name} 1통 빼기`}
-                  onClick={() => setQty(flavor.id, qty - 1)}
-                  disabled={qty === 0}
-                >
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  aria-label={`${flavor.name} 수량`}
-                  value={qty}
-                  onChange={(event) => setQty(flavor.id, Number(event.target.value))}
-                />
-                <button
-                  aria-label={`${flavor.name} 1통 더하기`}
-                  onClick={() => setQty(flavor.id, qty + 1)}
-                >
-                  +
-                </button>
-              </div>
+              <Stepper
+                size="sm"
+                ariaLabel={`${flavor.name} 수량`}
+                value={qty}
+                onChange={(next) => setQty(flavor.id, next)}
+              />
             </div>
           )
         })}

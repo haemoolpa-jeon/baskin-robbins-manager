@@ -95,6 +95,7 @@
 .seg {
   display: flex;
   gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
 }
 .seg button {
   flex: 1;
@@ -115,7 +116,11 @@
   display: flex;
   gap: var(--sp-2);
   flex-wrap: wrap;
+  margin-bottom: var(--sp-3);
 }
+/* Inside a form field the field's own margin handles spacing. */
+.field .seg,
+.field .chip-tabs { margin-bottom: 0; }
 .chip-tab {
   min-height: 44px;
   padding: 0 var(--sp-3);
@@ -330,4 +335,139 @@
   flex: 0 0 auto;
   font-size: var(--fs-xs);
   color: var(--text-3);
+}
+
+/* ===========================================================================
+   Shared UI primitives — Stepper, SearchInput, EmptyState, ErrorState, Badge,
+   ChipTabs extras. One implementation each, reused across inventory + workforce.
+   =========================================================================== */
+
+/* --- Stepper (− [n] +) ----------------------------------------------------*/
+.stepper { display: inline-flex; align-items: center; }
+.stepper-btn {
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 800;
+  line-height: 1;
+}
+.stepper-btn.stepper-plus { background: var(--ok-soft); color: var(--ok); }
+.stepper-btn:disabled { opacity: 0.35; }
+.stepper-input {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-weight: 800;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+.stepper-input::-webkit-inner-spin-button,
+.stepper-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* sm — compact, for count rows */
+.stepper-sm .stepper-btn { width: 46px; height: 46px; border-radius: var(--r-md); font-size: 26px; }
+.stepper-sm .stepper-input { width: 52px; height: 46px; font-size: var(--fs-xl); }
+
+/* md — bordered inline group, for forms */
+.stepper-md {
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+.stepper-md .stepper-btn { width: 48px; height: 48px; font-size: 24px; }
+.stepper-md .stepper-input { flex: 1; min-width: 0; width: 100%; height: 48px; font-size: var(--fs-lg); }
+
+/* lg — prominent round buttons + big number, for single-item editing */
+.stepper-lg { gap: var(--sp-4); justify-content: center; }
+.stepper-lg .stepper-btn { width: 64px; height: 64px; border-radius: 50%; font-size: 30px; }
+.stepper-lg .stepper-btn.stepper-minus { background: var(--danger-soft); color: var(--danger); }
+.stepper-lg .stepper-input { width: 88px; font-size: var(--fs-3xl); }
+
+/* --- SearchInput ----------------------------------------------------------*/
+.search-input {
+  flex: 1;
+  min-height: var(--touch);
+  margin-bottom: var(--sp-2);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  background: #fff;
+  color: var(--text-2);
+}
+.search-input:focus-within { border-color: var(--pink); }
+.search-input input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: var(--fs-md);
+  color: var(--text);
+  background: transparent;
+}
+
+/* --- EmptyState / ErrorState ---------------------------------------------*/
+.empty-state,
+.error-state {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6) var(--sp-4);
+  border-radius: var(--r-lg);
+  text-align: center;
+}
+.empty-state { border: 2px dashed var(--border); color: var(--text-2); }
+.empty-state-icon { font-size: 44px; line-height: 1; }
+.empty-state-title { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
+.empty-state-hint { font-size: var(--fs-sm); color: var(--text-2); max-width: 34ch; }
+.empty-state-action { margin-top: var(--sp-2); }
+.error-state { border: 2px solid #efaaaa; background: var(--danger-soft); }
+.error-state-icon { color: var(--danger); display: grid; place-items: center; }
+.error-state-title { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
+.error-state-hint { font-size: var(--fs-sm); color: var(--text-2); max-width: 34ch; }
+
+/* --- Badge ----------------------------------------------------------------*/
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  line-height: 1;
+}
+.badge-neutral { background: var(--surface-2); color: var(--text-2); }
+.badge-danger { background: var(--danger); color: #fff; }
+.badge-warn { background: var(--warn); color: #fff; }
+.badge-ok { background: var(--ok); color: #fff; }
+.badge-pink { background: var(--pink-soft); color: var(--pink-strong); }
+.badge-blue { background: var(--blue-soft); color: var(--blue); }
+
+/* --- ChipTabs extras (base .chip-tabs/.chip-tab defined above) ------------*/
+.chip-tabs-scroll { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; }
+.chip-tabs-scroll .chip-tab { flex: 0 0 auto; }
+.chip-tab { display: inline-flex; align-items: center; gap: 6px; }
+.chip-tab.shortage.active { border-color: var(--warn); background: var(--warn-soft); color: var(--warn); }
+.chip-tab-count { font-weight: 800; }
+
+/* --- Button busy state (inline spinner) -----------------------------------*/
+.btn .btn-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  opacity: 0.9;
 }

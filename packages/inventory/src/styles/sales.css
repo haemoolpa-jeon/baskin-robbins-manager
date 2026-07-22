@@ -22,14 +22,12 @@
 .section-card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--sp-4); margin-bottom: var(--sp-3); }
 .section-title { font-size: var(--fs-lg); font-weight: 800; margin-bottom: var(--sp-3); }
 
-/* Par setting */
-.par-row { display: flex; align-items: center; justify-content: center; gap: var(--sp-3); }
-.par-row .label { font-size: var(--fs-lg); font-weight: 700; }
-.par-stepper { display: flex; align-items: center; gap: var(--sp-3); }
-.par-stepper button { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--blue); background: #fff; color: var(--blue); font-size: 28px; font-weight: 800; }
-.par-stepper button:disabled { opacity: 0.4; }
-.par-value { font-size: var(--fs-3xl); font-weight: 800; min-width: 52px; text-align: center; }
-.par-hint { text-align: center; font-size: var(--fs-sm); color: var(--text-2); margin-top: var(--sp-3); }
+/* Section head with an inline par (목표 재고) control */
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); margin-bottom: var(--sp-2); }
+.section-head .section-title { margin-bottom: 0; }
+.par-inline { display: flex; align-items: center; gap: var(--sp-2); flex: 0 0 auto; }
+.par-inline .label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+.par-hint { font-size: var(--fs-sm); color: var(--text-2); margin-bottom: var(--sp-3); }
 
 /* Reorder checklist */
 .order-item {

@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
+import { SearchInput } from '@shared/components/SearchInput'
+import { ChipTabs } from '@shared/components/ChipTabs'
 import { useSetSlot, type SlotPos } from '@/data/cabinets'
 import { useSetStorage } from '@/data/storage'
 import { useRecordConsumption } from '@/data/consumption'
@@ -139,22 +141,18 @@ function AssignPicker({
 
   return (
     <Modal title={`📍 ${posLabel(pos)}`} subtitle="진열할 맛을 선택하세요" onClose={onClose}>
-      <input
-        className="input assign-search"
-        placeholder="🔍 맛 검색…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      <div className="type-tabs">
-        <button className={`type-tab ${type === 'all' ? 'active' : ''}`} onClick={() => setType('all')}>
-          전체
-        </button>
-        {FLAVOR_TYPE_ORDER.map((t) => (
-          <button key={t} className={`type-tab ${type === t ? 'active' : ''}`} onClick={() => setType(t)}>
-            {FLAVOR_TYPE_LABELS[t]}
-          </button>
-        ))}
+      <div className="assign-search">
+        <SearchInput ariaLabel="맛 검색" placeholder="맛 이름 검색" value={query} onChange={setQuery} />
       </div>
+      <ChipTabs
+        ariaLabel="맛 종류"
+        value={type}
+        onChange={setType}
+        options={[
+          { value: 'all', label: '전체' },
+          ...FLAVOR_TYPE_ORDER.map((t) => ({ value: t, label: FLAVOR_TYPE_LABELS[t] })),
+        ]}
+      />
       <div className="flavor-list">
         {grouped.length === 0 && <div className="no-result">검색 결과가 없습니다</div>}
         {grouped.map((g) => (
@@ -242,6 +240,7 @@ function FilledSlot({
           step={5}
           value={level}
           onChange={(e) => setLevel(Number(e.target.value))}
+          aria-label="잔량 퍼센트"
           style={{ width: '100%' }}
         />
         <div className="level-value">{level}%</div>

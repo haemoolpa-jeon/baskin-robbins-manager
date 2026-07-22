@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CalendarClock, Settings, History } from 'lucide-react'
 import { useApp } from '@shared/app/AppProvider'
 import { Spinner } from '@shared/components/Spinner'
+import { ErrorState } from '@shared/components/ErrorState'
 import { SettingsModal } from '@shared/settings/SettingsModal'
 import { HistoryModal } from '@shared/settings/HistoryModal'
 import { TimesheetPage } from '@/features/timesheet/TimesheetPage'
@@ -14,11 +15,7 @@ export function AppShell() {
   if (isError) {
     return (
       <div className="page" style={{ paddingTop: 80 }}>
-        <div className="card" style={{ textAlign: 'center', color: 'var(--danger)' }}>
-          매장 정보를 불러오지 못했습니다.
-          <br />
-          인터넷 연결을 확인해 주세요.
-        </div>
+        <ErrorState title="매장 정보를 불러오지 못했어요" />
       </div>
     )
   }

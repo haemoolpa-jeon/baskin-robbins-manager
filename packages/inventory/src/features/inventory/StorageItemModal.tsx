@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
 import { useConfirm } from '@shared/components/ConfirmDialog'
+import { Stepper } from '@shared/components/Stepper'
 import { useSetStorage } from '@/data/storage'
 import { useDeleteFlavor, useUpdateFlavor } from '@/data/flavors'
 import { useLog } from '@shared/data/activity'
@@ -79,20 +80,15 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
             취소
           </button>
           <button className="btn btn-primary" onClick={save} disabled={busy}>
+            {busy && <span className="btn-spinner" aria-hidden="true" />}
             저장
           </button>
         </>
       }
     >
-      <div style={{ textAlign: 'center', fontWeight: 700, color: 'var(--text-2)' }}>📦 창고 재고</div>
-      <div className="qty-control">
-        <button className="qty-btn minus" onClick={() => setQty((q) => Math.max(0, q - 1))}>
-          −
-        </button>
-        <span className="qty-display">{qty}</span>
-        <button className="qty-btn plus" onClick={() => setQty((q) => q + 1)}>
-          +
-        </button>
+      <div className="field">
+        <label>📦 창고 재고 (통)</label>
+        <Stepper size="lg" ariaLabel="창고 재고 수량" value={qty} onChange={setQty} />
       </div>
       <div className="form-grid-two">
         <div className="field">

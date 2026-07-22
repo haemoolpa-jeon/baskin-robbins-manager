@@ -1,5 +1,9 @@
-import { useMemo, useState } from 'react'
-import { ClipboardCheck, Search } from 'lucide-react'
+import { useMemo, useState, type ReactNode } from 'react'
+import { ClipboardCheck } from 'lucide-react'
+import { SearchInput } from '@shared/components/SearchInput'
+import { ChipTabs } from '@shared/components/ChipTabs'
+import { EmptyState } from '@shared/components/EmptyState'
+import { stockStatus } from '@/lib/stock'
 import { FLAVOR_TYPE_LABELS, FLAVOR_TYPE_ORDER, type Flavor, type Storage } from '@/lib/types'
 
 interface Props {
@@ -39,10 +43,7 @@ export function StorageView({
   return (
     <>
       <div className="storage-tools">
-        <label className="storage-search">
-          <Search size={20} aria-hidden="true" />
-          <input placeholder="맛 이름 검색" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="맛 검색" />
-        </label>
+        <SearchInput ariaLabel="맛 검색" placeholder="맛 이름 검색" value={query} onChange={setQuery} />
         {canEdit && (
           <button className="count-mode-btn" onClick={onCount}>
             <ClipboardCheck size={22} />
@@ -50,40 +51,54 @@ export function StorageView({
           </button>
         )}
       </div>
-      <div className="storage-filter-row">
-        <button className={!shortageOnly ? 'active' : ''} onClick={() => onShortageOnlyChange(false)}>전체</button>
-        <button className={shortageOnly ? 'active shortage' : ''} onClick={() => onShortageOnlyChange(true)}>
-          부족 재고만
-        </button>
-      </div>
-      <div className="storage-grid">
-        {groups.map((g) => (
-          <FragmentSection key={g.type} label={FLAVOR_TYPE_LABELS[g.type]}>
-            {g.items.map((f) => (
-              <button
-                key={f.id}
-                className={`storage-item ${f.available ? '' : 'unavailable'}`}
-                onClick={() => onItemTap(f.id)}
-              >
-                <div className="storage-tub" style={{ textShadow: `0 0 10px ${f.color}` }}>
-                  🍨
-                </div>
-                <div className="storage-name">{f.name}</div>
-                <div className={`storage-count ${(storage[f.id] ?? 0) === 0 ? 'empty' : (storage[f.id] ?? 0) < targetPar ? 'low' : ''}`}>
-                  {storage[f.id] ?? 0}통
-                </div>
-                {!f.available && <div className="storage-badge">판매중지</div>}
-              </button>
-            ))}
-          </FragmentSection>
-        ))}
-      </div>
+      <ChipTabs
+        ariaLabel="재고 필터"
+        value={shortageOnly ? 'low' : 'all'}
+        onChange={(v) => onShortageOnlyChange(v === 'low')}
+        options={[
+          { value: 'all', label: '전체' },
+          { value: 'low', label: '부족 재고만', tone: 'shortage' },
+        ]}
+      />
+
+      {groups.length === 0 ? (
+        <EmptyState
+          icon="🍨"
+          title={shortageOnly ? '부족한 맛이 없습니다' : '표시할 맛이 없습니다'}
+          hint={shortageOnly ? '모든 맛의 창고 재고가 목표 이상입니다.' : '검색어를 지우거나 새 맛을 추가해 보세요.'}
+        />
+      ) : (
+        <div className="storage-grid">
+          {groups.map((g) => (
+            <FragmentSection key={g.type} label={FLAVOR_TYPE_LABELS[g.type]}>
+              {g.items.map((f) => {
+                const qty = storage[f.id] ?? 0
+                const status = stockStatus(qty, targetPar)
+                return (
+                  <button
+                    key={f.id}
+                    className={`storage-item ${f.available ? '' : 'unavailable'}`}
+                    onClick={() => onItemTap(f.id)}
+                  >
+                    <div className="storage-tub" style={{ textShadow: `0 0 10px ${f.color}` }}>
+                      🍨
+                    </div>
+                    <div className="storage-name">{f.name}</div>
+                    <div className={`storage-count ${status === 'ok' ? '' : status}`}>{qty}통</div>
+                    {!f.available && <div className="storage-badge">판매중지</div>}
+                  </button>
+                )
+              })}
+            </FragmentSection>
+          ))}
+        </div>
+      )}
     </>
   )
 }
 
 // Section header spanning the grid, followed by its items (both are grid children).
-function FragmentSection({ label, children }: { label: string; children: React.ReactNode }) {
+function FragmentSection({ label, children }: { label: string; children: ReactNode }) {
   return (
     <>
       <div className="storage-section">{label}</div>
