@@ -192,42 +192,45 @@
   white-space: nowrap;
 }
 
-/* Storage grid */
-.storage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+/* Storage — vertical list on phones (one flavor per row, no emoji), card grid on tablets */
+.storage-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
 .storage-section {
-  grid-column: 1 / -1;
   font-size: var(--fs-sm);
   font-weight: 800;
   color: var(--text-2);
-  padding: var(--sp-2) 0 var(--sp-1);
+  padding: var(--sp-3) 0 var(--sp-1);
 }
 .storage-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--sp-2) var(--sp-3);
   background: var(--surface);
-  border-radius: var(--r-md);
-  padding: var(--sp-3) var(--sp-2);
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-  position: relative;
   border: 2px solid transparent;
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  position: relative;
 }
-.storage-item:active { transform: scale(0.96); }
+.storage-item:active { transform: scale(0.98); }
 .storage-item.unavailable { opacity: 0.5; }
-.storage-tub { font-size: 34px; }
+.storage-tub { display: none; } /* no 🍨 image in the phone list view */
 .storage-name {
-  font-size: var(--fs-sm);
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-md);
   font-weight: 700;
-  margin: var(--sp-1) 0 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.storage-count { font-size: var(--fs-lg); font-weight: 800; color: var(--blue); }
+.storage-count { flex: 0 0 auto; font-size: var(--fs-lg); font-weight: 800; color: var(--blue); }
 .storage-count.low { color: var(--warn); }
 .storage-count.empty { color: var(--danger); }
 .storage-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
+  flex: 0 0 auto;
   font-size: 11px;
   background: var(--danger-soft);
   color: var(--danger);
@@ -393,9 +396,16 @@
    roomier 2-col / 3-col grids instead of a cramped tablet grid. */
 @media (min-width: 820px) {
   .cab-grid { grid-template-columns: repeat(8, 1fr); }
-  .storage-grid { grid-template-columns: repeat(5, 1fr); }
   .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .inventory-domain-tabs button { flex-direction: row; min-height: 64px; font-size: var(--fs-sm); }
+
+  /* Storage returns to the emoji card grid on the wide tablet */
+  .storage-grid { display: grid; grid-template-columns: repeat(5, 1fr); }
+  .storage-section { grid-column: 1 / -1; }
+  .storage-item { flex-direction: column; align-items: center; text-align: center; min-height: 0; padding: var(--sp-3) var(--sp-2); }
+  .storage-tub { display: block; font-size: 34px; }
+  .storage-name { flex: none; width: 100%; margin: var(--sp-1) 0 2px; font-size: var(--fs-sm); }
+  .storage-badge { position: absolute; top: 4px; right: 4px; }
 }
 @media (min-width: 768px) {
   .slot { min-height: 100px; }
