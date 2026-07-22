@@ -43,7 +43,7 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
     return flavors
       .filter((flavor) => flavor.available)
       .filter((flavor) => !normalized || flavor.name.toLowerCase().includes(normalized))
-      .filter((flavor) => filter !== 'low' || (draft[flavor.id] ?? 0) < targetPar)
+      .filter((flavor) => filter !== 'low' || (draft[flavor.id] ?? 0) < (flavor.par ?? targetPar))
       .filter((flavor) => filter !== 'changed' || changed.has(flavor.id))
       .sort((a, b) => {
         const qtyDiff = (draft[a.id] ?? 0) - (draft[b.id] ?? 0)
@@ -135,7 +135,8 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
         {visible.length === 0 && <div className="no-result">표시할 맛이 없습니다</div>}
         {visible.map((flavor) => {
           const qty = draft[flavor.id] ?? 0
-          const status = stockStatus(qty, targetPar)
+          const par = flavor.par ?? targetPar
+          const status = stockStatus(qty, par)
           return (
             <div className={`count-row ${changed.has(flavor.id) ? 'changed' : ''}`} key={flavor.id}>
               <span className="count-color" style={{ background: flavor.color }} />
@@ -145,7 +146,7 @@ export function InventoryCountModal({ flavors, storage, storeId, targetPar, onCl
                   {status === 'empty'
                     ? '품절'
                     : status === 'low'
-                      ? `목표보다 ${targetPar - qty}통 부족`
+                      ? `목표보다 ${par - qty}통 부족`
                       : '재고 충분'}
                 </span>
               </div>

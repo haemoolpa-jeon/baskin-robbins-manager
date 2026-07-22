@@ -10,6 +10,7 @@ interface FlavorRow {
   color: string
   type: FlavorType
   available: boolean
+  par: number | null
   lot_number: string | null
   expiry_date: string | null
   storage_location: string | null
@@ -21,6 +22,7 @@ const mapFlavor = (r: FlavorRow): Flavor => ({
   color: r.color,
   type: r.type,
   available: r.available,
+  par: r.par ?? null,
   lotNumber: r.lot_number ?? '',
   expiryDate: r.expiry_date,
   storageLocation: r.storage_location ?? '',
@@ -47,6 +49,7 @@ export interface NewFlavor {
   name: string
   color: string
   type: FlavorType
+  par: number | null
   lotNumber: string
   expiryDate: string | null
   storageLocation: string
@@ -65,6 +68,7 @@ export function useAddFlavor(storeId: string | null) {
           name: f.name,
           color: f.color,
           type: f.type,
+          par: f.par ?? null,
           lot_number: f.lotNumber || null,
           expiry_date: f.expiryDate || null,
           storage_location: f.storageLocation || '',
@@ -86,6 +90,7 @@ export function useUpdateFlavor(storeId: string | null) {
       if (f.color !== undefined) patch.color = f.color
       if (f.type !== undefined) patch.type = f.type
       if (f.available !== undefined) patch.available = f.available
+      if (f.par !== undefined) patch.par = f.par
       if (f.lotNumber !== undefined) patch.lot_number = f.lotNumber || null
       if (f.expiryDate !== undefined) patch.expiry_date = f.expiryDate || null
       if (f.storageLocation !== undefined) patch.storage_location = f.storageLocation

@@ -12,6 +12,7 @@ export interface Flavor {
   color: string
   type: FlavorType
   available: boolean
+  par: number | null // 맛별 목표 재고 (통); null이면 매장 기본 목표 사용
   lotNumber: string
   expiryDate: string | null
   storageLocation: string

@@ -32,7 +32,9 @@ export function StorageView({
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase()
     const filtered = flavors.filter(
-      (f) => (!q || f.name.toLowerCase().includes(q)) && (!shortageOnly || (f.available && (storage[f.id] ?? 0) < targetPar)),
+      (f) =>
+        (!q || f.name.toLowerCase().includes(q)) &&
+        (!shortageOnly || (f.available && (storage[f.id] ?? 0) < (f.par ?? targetPar))),
     )
     return FLAVOR_TYPE_ORDER.map((t) => ({
       type: t,
@@ -73,7 +75,7 @@ export function StorageView({
             <FragmentSection key={g.type} label={FLAVOR_TYPE_LABELS[g.type]}>
               {g.items.map((f) => {
                 const qty = storage[f.id] ?? 0
-                const status = stockStatus(qty, targetPar)
+                const status = stockStatus(qty, f.par ?? targetPar)
                 return (
                   <button
                     key={f.id}

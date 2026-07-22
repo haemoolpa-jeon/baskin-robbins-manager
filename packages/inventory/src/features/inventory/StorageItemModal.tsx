@@ -3,6 +3,7 @@ import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
 import { useConfirm } from '@shared/components/ConfirmDialog'
 import { Stepper } from '@shared/components/Stepper'
+import { useApp } from '@shared/app/AppProvider'
 import { useSetStorage } from '@/data/storage'
 import { useDeleteFlavor, useUpdateFlavor } from '@/data/flavors'
 import { useLog } from '@shared/data/activity'
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props) {
+  const { defaultPar } = useApp()
   const toast = useToast()
   const confirm = useConfirm()
   const log = useLog(storeId)
@@ -23,6 +25,7 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
   const updateFlavor = useUpdateFlavor(storeId)
   const deleteFlavor = useDeleteFlavor(storeId)
   const [qty, setQty] = useState(currentQty)
+  const [par, setPar] = useState(flavor.par ?? defaultPar)
   const [lotNumber, setLotNumber] = useState(flavor.lotNumber)
   const [expiryDate, setExpiryDate] = useState(flavor.expiryDate ?? '')
   const [storageLocation, setStorageLocation] = useState(flavor.storageLocation)
@@ -33,6 +36,7 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
       await setStorage.mutateAsync({ flavorId: flavor.id, quantity: qty })
       await updateFlavor.mutateAsync({
         id: flavor.id,
+        par,
         lotNumber,
         expiryDate: expiryDate || null,
         storageLocation,
@@ -89,6 +93,10 @@ export function StorageItemModal({ flavor, currentQty, storeId, onClose }: Props
       <div className="field">
         <label>📦 창고 재고 (통)</label>
         <Stepper size="lg" ariaLabel="창고 재고 수량" value={qty} onChange={setQty} />
+      </div>
+      <div className="field">
+        <label>🎯 목표 재고 (통) <small>이 맛 기준</small></label>
+        <Stepper size="md" ariaLabel="목표 재고 수량" value={par} onChange={setPar} />
       </div>
       <div className="form-grid-two">
         <div className="field">

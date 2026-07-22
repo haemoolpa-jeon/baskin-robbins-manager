@@ -54,7 +54,7 @@ export function SalesPage() {
   const reorder = useMemo(() => {
     return flavors
       .filter((f) => f.available)
-      .map((f) => ({ flavor: f, stock: storage[f.id] ?? 0, need: par - (storage[f.id] ?? 0) }))
+      .map((f) => ({ flavor: f, stock: storage[f.id] ?? 0, need: (f.par ?? par) - (storage[f.id] ?? 0) }))
       .filter((x) => x.need > 0)
       .sort((a, b) => b.need - a.need)
   }, [flavors, storage, par])
@@ -201,8 +201,8 @@ export function SalesPage() {
         <div className="section-head">
           <div className="section-title">🍨 아이스크림 주문</div>
           <div className="par-inline">
-            <span className="label">목표</span>
-            <Stepper size="sm" ariaLabel="목표 재고 통 수" value={par} onChange={applyPar} />
+            <span className="label">기본 목표</span>
+            <Stepper size="sm" ariaLabel="기본 목표 재고 통 수" value={par} onChange={applyPar} />
             <span className="label">통</span>
           </div>
         </div>

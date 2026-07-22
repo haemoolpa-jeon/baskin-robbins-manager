@@ -90,7 +90,7 @@ export function InventoryPage() {
 
   const counts = useMemo(() => {
     const availableFlavors = flavors.filter((flavor) => flavor.available)
-    const iceLow = availableFlavors.filter((flavor) => (storage[flavor.id] ?? 0) < defaultPar).length
+    const iceLow = availableFlavors.filter((flavor) => (storage[flavor.id] ?? 0) < (flavor.par ?? defaultPar)).length
     const productLow = (category: ProductCategory) =>
       products.filter((product) => product.category === category && product.available && product.quantity < product.par).length
     return {

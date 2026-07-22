@@ -3,12 +3,14 @@ import { Modal } from '@shared/components/Modal'
 import { useToast } from '@shared/components/Toast'
 import { Stepper } from '@shared/components/Stepper'
 import { ChipTabs } from '@shared/components/ChipTabs'
+import { useApp } from '@shared/app/AppProvider'
 import { useAddFlavor } from '@/data/flavors'
 import { useSetStorage } from '@/data/storage'
 import { useLog } from '@shared/data/activity'
 import { FLAVOR_TYPE_LABELS, FLAVOR_TYPE_ORDER, type FlavorType } from '@/lib/types'
 
 export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; onClose: () => void }) {
+  const { defaultPar } = useApp()
   const toast = useToast()
   const addFlavor = useAddFlavor(storeId)
   const setStorage = useSetStorage(storeId)
@@ -17,6 +19,7 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
   const [type, setType] = useState<FlavorType>('fixed')
   const [color, setColor] = useState('#ff69b4')
   const [qty, setQty] = useState(0)
+  const [par, setPar] = useState(defaultPar)
   const [lotNumber, setLotNumber] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
   const [storageLocation, setStorageLocation] = useState('아이스크림 냉동고')
@@ -31,6 +34,7 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
         name: name.trim(),
         color,
         type,
+        par,
         lotNumber,
         expiryDate: expiryDate || null,
         storageLocation,
@@ -85,6 +89,10 @@ export function AddFlavorModal({ storeId, onClose }: { storeId: string | null; o
       <div className="field">
         <label>창고 수량 (통)</label>
         <Stepper size="lg" ariaLabel="창고 수량" value={qty} onChange={setQty} />
+      </div>
+      <div className="field">
+        <label>🎯 목표 재고 (통)</label>
+        <Stepper size="md" ariaLabel="목표 재고 수량" value={par} onChange={setPar} />
       </div>
       <div className="form-grid-two">
         <div className="field">

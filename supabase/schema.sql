@@ -32,6 +32,7 @@ create table flavors (
   color text default '#ff69b4',
   type text default 'fixed' check (type in ('fixed', 'seasonal', 'limited', 'special')),
   available boolean default true,
+  par int, -- 맛별 목표 재고 (통); null이면 매장 기본 목표(stores.default_par) 사용
   lot_number text,
   expiry_date date,
   storage_location text not null default '',
