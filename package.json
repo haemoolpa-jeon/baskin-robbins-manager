@@ -3,29 +3,25 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "demo": "vite --mode demo",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.47.10",
-    "@tanstack/react-query": "^5.62.7",
-    "lucide-react": "^0.460.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "dev": "npm run dev -w @br/inventory",
+    "dev:inventory": "npm run dev -w @br/inventory",
+    "dev:workforce": "npm run dev -w @br/workforce",
+    "demo": "npm run demo -w @br/inventory",
+    "demo:workforce": "npm run demo -w @br/workforce",
+    "build": "npm run build -w @br/inventory",
+    "build:inventory": "npm run build -w @br/inventory",
+    "build:workforce": "npm run build -w @br/workforce",
+    "build:all": "npm run build -w @br/inventory && npm run build -w @br/workforce",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
-    "@types/react": "^18.3.17",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@supabase/supabase-js": "^2.47.10",
     "playwright": "^1.60.0",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.3",
-    "vite-plugin-pwa": "^0.21.1",
-    "vitest": "^2.1.9"
+    "typescript": "^5.6.3"
   }
 }

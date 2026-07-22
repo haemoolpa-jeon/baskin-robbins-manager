@@ -1,9 +1,23 @@
-# BR 재고 매니저
+# BR 매니저 (모노레포)
 
-스마트폰과 태블릿에서 사용하는 한국어 우선 매장 재고 PWA입니다. 현재 앱은 재고 업무에만 집중하며,
-근무·급여 관리는 별도 제품으로 분리합니다.
+스마트폰과 태블릿에서 사용하는 한국어 우선 매장 관리 PWA 모음입니다. 재고와 근무·급여를 각각
+독립적으로 배포·설치할 수 있는 별도 앱으로 분리하고, 공용 코드(Supabase 연결, 공통 UI, 매장
+컨텍스트)는 `@br/shared`에서 공유합니다.
 
-## 관리 범위
+## 패키지 구성
+
+```
+packages/
+  shared/     @br/shared     Supabase 클라이언트·데모 백엔드, 공통 UI(Modal/Toast/…),
+                             매장 컨텍스트(AppProvider), PIN 잠금, 설정·변경기록, 공통 스타일
+  inventory/  @br/inventory  재고 매니저 앱 (아이스크림·케이크·디저트·소모품·주문 준비)
+  workforce/  @br/workforce  근무 매니저 앱 (근무 일정 + 한국 급여: 주휴·3.3%·실수령)
+```
+
+앱은 `@shared/*` 경로 별칭으로 공용 소스를 직접 참조합니다(별도 빌드 단계 없음). Supabase 스키마와
+마이그레이션(`supabase/`)은 두 앱이 공유합니다.
+
+## 재고 앱 관리 범위
 
 - **아이스크림** — 캐비닛 위치/잔량, 창고 텁 수량, LOT, 소비기한, 보관 위치
 - **케이크** — 일반/미니/큐브/컬렉션, 수량, 목표, 규격, 소비기한, 냉동고 위치
@@ -15,13 +29,28 @@
 
 ## 개발
 
+루트에서 `npm install` 한 번이면 워크스페이스가 모두 연결됩니다.
+
 ```bash
 npm install
-npm run demo       # 백엔드 없이 샘플 재고로 실행
-npm run dev        # .env의 Supabase 사용
-npm run build
-npm test
+
+# 재고 앱 (@br/inventory)
+npm run dev              # = dev:inventory, .env의 Supabase 사용
+npm run demo             # 백엔드 없이 샘플 데이터로 실행
+npm run build            # = build:inventory (Vercel 기본 배포 대상)
+
+# 근무 앱 (@br/workforce)
+npm run dev:workforce
+npm run demo:workforce
+npm run build:workforce
+
+# 전체
+npm run build:all        # 두 앱 모두 빌드
+npm run typecheck        # 모든 워크스페이스 타입 검사
+npm test                 # 모든 워크스페이스 테스트 (현재 급여 단위 테스트)
 ```
+
+각 앱의 `.env` / `.env.demo`는 해당 패키지 폴더(`packages/<app>/`)에 둡니다.
 
 ## Supabase
 
