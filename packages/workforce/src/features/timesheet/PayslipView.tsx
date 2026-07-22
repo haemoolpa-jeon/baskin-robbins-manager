@@ -9,7 +9,7 @@ import { useLog } from '@shared/data/activity'
 import { computePayroll } from '@/lib/payroll'
 import { won } from '@/lib/money'
 import { formatHours } from '@/lib/time'
-import { ymLabel } from '@/lib/date'
+import { ymLabel } from '@shared/lib/date'
 import type { Shift, Worker } from '@/lib/types'
 import { PayslipPrint } from './PayslipPrint'
 

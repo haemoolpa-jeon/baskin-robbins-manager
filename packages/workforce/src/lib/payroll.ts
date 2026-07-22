@@ -9,7 +9,7 @@
 //   공제액   = 세금 적용 시 세전 × 3.3%
 //   실수령액 = 세전 − 공제
 import type { Shift } from './types'
-import { parseDate, weekStartIso } from './date'
+import { parseDate, weekStartIso } from '@shared/lib/date'
 import { hoursBetween } from './time'
 
 const WEEKLY_HOLIDAY_THRESHOLD = 15 // 주 15시간 이상 → 주휴 발생

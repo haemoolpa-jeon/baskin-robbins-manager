@@ -1,22 +1,5 @@
-/* Timesheet: month picker, view toggle, calendar, day editor, payslip. */
-
-.month-picker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--sp-3);
-  margin-bottom: var(--sp-3);
-}
-.month-picker button {
-  width: var(--touch);
-  height: var(--touch);
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--surface);
-  color: var(--pink);
-  font-size: var(--fs-lg);
-}
-.month-label { font-size: var(--fs-xl); font-weight: 800; min-width: 150px; text-align: center; }
+/* Timesheet: view toggle, calendar, day editor, payslip.
+   (.month-picker moved to @shared/styles/components.css — now used by both apps.) */
 
 .view-toggle { display: flex; gap: var(--sp-2); margin-bottom: var(--sp-4); }
 .view-toggle button {

@@ -471,3 +471,58 @@
   animation: spin 0.8s linear infinite;
   opacity: 0.9;
 }
+
+/* --- MonthPicker (◀ 2026년 7월 ▶) -----------------------------------------*/
+.month-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+.month-picker button {
+  width: var(--touch);
+  height: var(--touch);
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--pink);
+  font-size: var(--fs-lg);
+}
+.month-label { font-size: var(--fs-xl); font-weight: 800; min-width: 150px; text-align: center; }
+
+/* --- Calendar (generic month grid; independent of workforce .cal-*) --------*/
+.calendar { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); padding: var(--sp-3); }
+.calendar-head,
+.calendar-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-1); }
+.calendar-head > div { text-align: center; font-size: var(--fs-sm); font-weight: 800; color: var(--text-2); padding-bottom: var(--sp-1); }
+.calendar-head > div.sat { color: var(--blue); }
+.calendar-head > div.sun { color: var(--danger); }
+.calendar-cell {
+  min-height: 56px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 2px solid transparent;
+  text-align: left;
+  color: var(--text);
+}
+.calendar-cell.empty { background: transparent; }
+.calendar-cell.marked { background: var(--pink-soft); }
+.calendar-cell.today { border-color: var(--blue); }
+.calendar-cell.selected { border-color: var(--pink); background: var(--pink-soft); box-shadow: var(--shadow-sm); }
+.calendar-cell:active { transform: scale(0.97); }
+.calendar-cell:disabled { opacity: 0.45; }
+.calendar-date { font-size: var(--fs-sm); font-weight: 800; }
+.calendar-date.sat { color: var(--blue); }
+.calendar-date.sun { color: var(--danger); }
+.calendar-note { font-size: var(--fs-xs); font-weight: 800; color: var(--pink-strong); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (min-width: 768px) {
+  .calendar { padding: var(--sp-4); }
+  .calendar-head,
+  .calendar-week { gap: var(--sp-2); }
+  .calendar-cell { min-height: 84px; padding: 7px; }
+}

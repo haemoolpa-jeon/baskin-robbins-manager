@@ -5,7 +5,7 @@ import { useToast } from '@shared/components/Toast'
 import { useConfirm } from '@shared/components/ConfirmDialog'
 import { useAddShift, useDeleteShift } from '@/data/shifts'
 import { useLog } from '@shared/data/activity'
-import { WEEKDAYS_KO, parseDate } from '@/lib/date'
+import { WEEKDAYS_KO, parseDate } from '@shared/lib/date'
 import { hoursBetween, minutesToLabel, formatHours, timeMarks } from '@/lib/time'
 import type { Shift } from '@/lib/types'
 

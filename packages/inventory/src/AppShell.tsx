@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Boxes, ShoppingCart, Settings, History } from 'lucide-react'
+import { Boxes, ShoppingCart, Settings, History, CalendarDays } from 'lucide-react'
 import { useApp } from '@shared/app/AppProvider'
 import { Spinner } from '@shared/components/Spinner'
 import { ErrorState } from '@shared/components/ErrorState'
@@ -7,6 +7,7 @@ import { SettingsModal } from '@shared/settings/SettingsModal'
 import { HistoryModal } from '@shared/settings/HistoryModal'
 import { InventoryPage } from '@/features/inventory/InventoryPage'
 import { SalesPage } from '@/features/sales/SalesPage'
+import { InventoryCalendarModal } from '@/features/history/InventoryCalendarModal'
 
 type Tab = 'inventory' | 'sales'
 
@@ -18,7 +19,7 @@ const TABS: { key: Tab; label: string; Icon: typeof Boxes }[] = [
 export function AppShell() {
   const { storeName, isLoading, isError } = useApp()
   const [tab, setTab] = useState<Tab>('inventory')
-  const [overlay, setOverlay] = useState<'settings' | 'history' | null>(null)
+  const [overlay, setOverlay] = useState<'settings' | 'history' | 'calendar' | null>(null)
 
   if (isLoading) return <Spinner center />
   if (isError) {
@@ -39,6 +40,9 @@ export function AppShell() {
             <small className="store-name">{storeName}</small>
           </span>
         </div>
+        <button className="header-icon" onClick={() => setOverlay('calendar')} aria-label="재고 달력">
+          <CalendarDays size={24} />
+        </button>
         <button className="header-icon" onClick={() => setOverlay('history')} aria-label="변경 기록">
           <History size={24} />
         </button>
@@ -65,6 +69,7 @@ export function AppShell() {
         ))}
       </nav>
 
+      {overlay === 'calendar' && <InventoryCalendarModal onClose={() => setOverlay(null)} />}
       {overlay === 'settings' && <SettingsModal onClose={() => setOverlay(null)} />}
       {overlay === 'history' && <HistoryModal onClose={() => setOverlay(null)} />}
     </div>

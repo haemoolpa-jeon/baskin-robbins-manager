@@ -230,6 +230,7 @@ function seedDB(): Tables {
   const storage: Row[] = [
     [1, 3], [2, 1], [3, 0], [5, 2], [6, 4], [9, 0], [10, 1], [13, 5], [17, 2], [19, 1],
   ].map(([fid, qty], i) => ({ id: i + 1, store_id: STORE_ID, flavor_id: fid, quantity: qty }))
+  const products = seedInventoryProducts()
 
   return {
     stores: [{ id: STORE_ID, name: '데모 베스킨라빈스', default_par: 2 }],
@@ -249,7 +250,8 @@ function seedDB(): Tables {
     flavors: FLAVORS,
     cabinets: seedCabinets(),
     storage,
-    inventory_products: seedInventoryProducts(),
+    inventory_products: products,
+    inventory_snapshots: seedSnapshots(storage, products),
     shifts: seedShifts(),
     payroll_extras: [
       { id: 1, store_id: STORE_ID, worker_id: 1, year_month: currentYm(), amount: 50000, note: '명절 보너스' },
@@ -262,6 +264,28 @@ function seedDB(): Tables {
 function currentYm(): string {
   const d = new Date()
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`
+}
+
+// ~2 weeks of daily inventory snapshots so the demo history calendar isn't empty.
+// Today's snapshot equals current on-hand; earlier days carry gentle deterministic
+// variation. Covers storage tubs + packaged products (what restore replays).
+function seedSnapshots(storage: Row[], products: Row[]): Row[] {
+  const rows: Row[] = []
+  let id = 1
+  const today = new Date()
+  for (let back = 0; back < 14; back++) {
+    const d = new Date(today)
+    d.setDate(today.getDate() - back)
+    const date = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    const vary = (base: number, key: number) => (back === 0 ? base : Math.max(0, base + (((key + back) % 3) - 1)))
+    for (const s of storage) {
+      rows.push({ id: id++, store_id: STORE_ID, snapshot_date: date, item_type: 'storage', item_id: s.flavor_id, quantity: vary(s.quantity, s.flavor_id) })
+    }
+    for (const p of products) {
+      rows.push({ id: id++, store_id: STORE_ID, snapshot_date: date, item_type: 'product', item_id: p.id, quantity: vary(p.quantity, p.id) })
+    }
+  }
+  return rows
 }
 
 function seedActivity(): Row[] {
@@ -430,9 +454,16 @@ class DemoDB {
       !this.tables.inventory_products.some((row) => row.name === '아이스크림 롤 (매장별 등록)')
     const flavorCatalogNeedsUpgrade =
       !this.tables.flavors?.some((row) => row.name === '쵸파의 코튼캔디 크런치')
+    const snapshotsNeedSeed = !this.tables.inventory_snapshots?.length
     if (inventoryNeedsUpgrade) this.tables.inventory_products = seedInventoryProducts()
     if (flavorCatalogNeedsUpgrade) this.tables.flavors = FLAVORS
-    if (!saved || inventoryNeedsUpgrade || flavorCatalogNeedsUpgrade) this.persist()
+    if (snapshotsNeedSeed) {
+      this.tables.inventory_snapshots = seedSnapshots(
+        this.tables.storage ?? [],
+        this.tables.inventory_products ?? [],
+      )
+    }
+    if (!saved || inventoryNeedsUpgrade || flavorCatalogNeedsUpgrade || snapshotsNeedSeed) this.persist()
   }
 
   persist() {

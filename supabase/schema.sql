@@ -4,6 +4,7 @@
 -- ===========================================================================
 
 drop table if exists activity_log cascade;
+drop table if exists inventory_snapshots cascade;
 drop table if exists sales cascade;
 drop table if exists payroll_extras cascade;
 drop table if exists shifts cascade;
@@ -115,6 +116,22 @@ create table sales (
   sold_at timestamptz default now()
 );
 
+-- Daily inventory snapshots — a point-in-time copy of on-hand quantities so the
+-- owner can see "how many did I have on day X" and restore a past day. One row
+-- per (day, item). item_type = 'storage' (ice-cream tubs, item_id = flavor_id)
+-- or 'product' (cakes/desserts/supplies, item_id = inventory_products.id).
+create table inventory_snapshots (
+  id bigserial primary key,
+  store_id uuid references stores(id) on delete cascade,
+  snapshot_date date not null,
+  item_type text not null check (item_type in ('storage', 'product')),
+  item_id bigint not null,
+  quantity int not null default 0 check (quantity >= 0),
+  created_at timestamptz default now(),
+  unique (store_id, snapshot_date, item_type, item_id)
+);
+create index on inventory_snapshots (store_id, snapshot_date);
+
 -- Change history — every meaningful action is logged here so the owner can
 -- review what changed and when.
 create table activity_log (
@@ -136,7 +153,7 @@ create index on activity_log (store_id, created_at desc);
 do $$
 declare t text;
 begin
-  foreach t in array array['stores','flavors','cabinets','storage','inventory_products','workers','shifts','payroll_extras','sales','activity_log']
+  foreach t in array array['stores','flavors','cabinets','storage','inventory_products','inventory_snapshots','workers','shifts','payroll_extras','sales','activity_log']
   loop
     execute format('alter table %I enable row level security;', t);
     execute format('drop policy if exists anon_all on %I;', t);

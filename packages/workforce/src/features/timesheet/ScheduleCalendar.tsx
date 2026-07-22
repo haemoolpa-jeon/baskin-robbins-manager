@@ -1,4 +1,4 @@
-import { isoDate, monthWeeks, WEEKDAYS_MON_FIRST } from '@/lib/date'
+import { isoDate, monthWeeks, WEEKDAYS_MON_FIRST } from '@shared/lib/date'
 import { minutesToShort } from '@/lib/time'
 import type { Shift } from '@/lib/types'
 

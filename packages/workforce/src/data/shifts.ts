@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@shared/lib/supabase'
-import { addMonths } from '@/lib/date'
+import { addMonths } from '@shared/lib/date'
 import type { Shift } from '@/lib/types'
 
 export const shiftKeys = {

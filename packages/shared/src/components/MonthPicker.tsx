@@ -1,4 +1,4 @@
-import { addMonths, ymLabel } from '@/lib/date'
+import { addMonths, ymLabel } from '@shared/lib/date'
 
 export function MonthPicker({ ym, onChange }: { ym: string; onChange: (ym: string) => void }) {
   return (

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CakeSlice, IceCreamBowl, PackageOpen, PackagePlus, Utensils } from 'lucide-react'
 import { useApp } from '@shared/app/AppProvider'
 import { useLog } from '@shared/data/activity'
@@ -10,6 +10,7 @@ import { useFlavors } from '@/data/flavors'
 import { useCabinets, useSwapSlots, type SlotPos } from '@/data/cabinets'
 import { useStorage } from '@/data/storage'
 import { useProducts } from '@/data/products'
+import { useWriteSnapshot } from '@/data/snapshots'
 import type { CabinetName, Flavor, InventoryProduct, ProductCategory } from '@/lib/types'
 import { CabinetView } from './CabinetView'
 import { StorageView } from './StorageView'
@@ -49,6 +50,8 @@ export function InventoryPage() {
   const storageQ = useStorage(storeId)
   const productsQ = useProducts(storeId)
   const swapSlots = useSwapSlots(storeId)
+  const writeSnapshot = useWriteSnapshot(storeId)
+  const lastSnapSig = useRef('')
 
   const [domain, setDomain] = useState<Domain>('icecream')
   const [iceView, setIceView] = useState<IceView>('storage')
@@ -61,6 +64,29 @@ export function InventoryPage() {
   const storage = storageQ.data ?? {}
   const products = productsQ.data ?? []
   const flavorsById = useMemo(() => new Map<number, Flavor>(flavors.map((flavor) => [flavor.id, flavor])), [flavors])
+
+  // Auto-capture today's inventory snapshot, and refresh it whenever quantities
+  // change today, so the history calendar always reflects the latest counts.
+  useEffect(() => {
+    if (!storeId) return
+    if (flavorsQ.isLoading || storageQ.isLoading || productsQ.isLoading) return
+    if (flavorsQ.isError || storageQ.isError || productsQ.isError) return
+    const sig = JSON.stringify([storage, products.map((p) => [p.id, p.quantity])])
+    if (sig === lastSnapSig.current) return
+    lastSnapSig.current = sig
+    writeSnapshot.mutate({ storage, products })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    storeId,
+    storage,
+    products,
+    flavorsQ.isLoading,
+    storageQ.isLoading,
+    productsQ.isLoading,
+    flavorsQ.isError,
+    storageQ.isError,
+    productsQ.isError,
+  ])
 
   const counts = useMemo(() => {
     const availableFlavors = flavors.filter((flavor) => flavor.available)
