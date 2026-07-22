@@ -1,0 +1,11 @@
+{
+  // Deploys the built inventory PWA as a Cloudflare Worker that only serves
+  // static assets (no server code). Used by the Workers "npx wrangler deploy"
+  // flow. Build step must run first: `npm run build:inventory`.
+  "name": "baskin-robbins-manager",
+  "compatibility_date": "2026-07-22",
+  "assets": {
+    "directory": "packages/inventory/dist",
+    "not_found_handling": "single-page-application"
+  }
+}
